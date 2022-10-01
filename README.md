@@ -1,5 +1,5 @@
 # Live-Subtitle
-ANDROID APP that will RECOGNIZE words of LIVE AUDIO/VIDEO STREAMING then TRANSLATE and display it as SUBTITLES
+ANDROID APP that will RECOGNIZE words of LIVE AUDIO/VIDEO STREAMING then TRANSLATE (powered by ANDROID MLKIT TRANSLATE) and display them as SUBTITLES.
 
 This app has PROS & CONS compared to another Speech Recognition Framework like VOSK, IBM WATSON, and PREMIUM GOOGPLE SPEECH API
 
