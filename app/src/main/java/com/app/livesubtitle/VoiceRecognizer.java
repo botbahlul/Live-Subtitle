@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
-//import android.media.AudioFormat;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.RecognitionListener;
@@ -58,12 +57,8 @@ public class VoiceRecognizer extends Service {
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
             speechRecognizerIntent.putExtra("android.speech.extra.HIDE_PARTIAL_TRAILING_PUNCTUATION", true);
             speechRecognizerIntent.putExtra("android.speech.extra.DICTATION_MODE", true);
-            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
-            //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT",AudioFormat.ENCODING_PCM_8BIT);
-            //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO",true);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, src_dialect);
-            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3600000);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
             speechRecognizer.setRecognitionListener(new RecognitionListener() {
