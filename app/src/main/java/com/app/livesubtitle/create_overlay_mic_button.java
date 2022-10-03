@@ -134,13 +134,4 @@ public class create_overlay_mic_button extends Service {
         stopService(new Intent(this, VoiceRecognizer.class));
     }
 
-    /*private void start_create_overlay_translation_text() {
-        Intent i = new Intent(this, create_overlay_translation_text.class);
-        startService(i);
-    }
-
-    private void stop_create_overlay_translation_text() {
-        stopService(new Intent(this, create_overlay_translation_text.class));
-    }*/
-
 }
