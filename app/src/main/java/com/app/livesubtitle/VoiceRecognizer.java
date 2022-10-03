@@ -275,8 +275,4 @@ public class VoiceRecognizer extends Service {
         }
     }
 
-    private void toast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
-
 }
