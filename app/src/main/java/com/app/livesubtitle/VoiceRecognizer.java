@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
-//import android.media.AudioFormat;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.RecognitionListener;
