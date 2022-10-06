@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
+//import android.media.AudioFormat;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.RecognitionListener;
@@ -43,7 +44,7 @@ public class VoiceRecognizer extends Service {
     public void onCreate() {
         super.onCreate();
         //private String LOG_TAG = "VoiceRecognitionActivity";
-        String src_dialect = LANGUAGE_PREFS.SRC_DIALECT;
+        String src_dialect = LANGUAGE.SRC_DIALECT;
         Timer timer = new Timer();
         if(speechRecognizer != null) speechRecognizer.destroy();
         //Log.i(LOG_TAG, "isRecognitionAvailable: " + SpeechRecognizer.isRecognitionAvailable(this));
@@ -57,8 +58,12 @@ public class VoiceRecognizer extends Service {
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
             speechRecognizerIntent.putExtra("android.speech.extra.HIDE_PARTIAL_TRAILING_PUNCTUATION", true);
             speechRecognizerIntent.putExtra("android.speech.extra.DICTATION_MODE", true);
+            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
+            //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT",AudioFormat.ENCODING_PCM_8BIT);
+            //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO",true);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, src_dialect);
+            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3600000);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
             speechRecognizer.setRecognitionListener(new RecognitionListener() {
@@ -193,7 +198,7 @@ public class VoiceRecognizer extends Service {
                 @Override
                 public void run() {
                     if (VOICE_TEXT.STRING != null) {
-                        get_translation(VOICE_TEXT.STRING, LANGUAGE_PREFS.SRC, LANGUAGE_PREFS.DST);
+                        get_translation(VOICE_TEXT.STRING, LANGUAGE.SRC, LANGUAGE.DST);
                     }
                 }
             },0,3000);
@@ -245,15 +250,15 @@ public class VoiceRecognizer extends Service {
 
         translator = Translation.getClient(options);
 
-        if (!DICTIONARY_MODEL_DOWNLOAD_STATUS.DOWNLOADED) {
+        if (!MLKIT_DICTIONARY.READY) {
             DownloadConditions conditions = new DownloadConditions.Builder().build();
             translator.downloadModelIfNeeded(conditions)
-                    .addOnSuccessListener(unused -> DICTIONARY_MODEL_DOWNLOAD_STATUS.DOWNLOADED = true)
+                    .addOnSuccessListener(unused -> MLKIT_DICTIONARY.READY = true)
                     .addOnFailureListener(e -> {});
         }
 
-        if (DICTIONARY_MODEL_DOWNLOAD_STATUS.DOWNLOADED) {
-            String downloaded_status_message = "Dictionary is ready to use";
+        if (MLKIT_DICTIONARY.READY) {
+            String downloaded_status_message = "Dictionary is ready";
             MainActivity.textview_debug2.setText(downloaded_status_message);
             translator.translate(text).addOnSuccessListener(s -> {
                 TRANSLATION_TEXT.STRING = s;
@@ -273,6 +278,10 @@ public class VoiceRecognizer extends Service {
                 }
             }).addOnFailureListener(e -> {});
         }
+    }
+
+    private void toast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
 }

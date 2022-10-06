@@ -74,7 +74,7 @@ public class create_overlay_translation_text extends Service {
             overlay_translation_text_container.setVisibility(View.INVISIBLE);
         }
         int h;
-        if (Objects.equals(LANGUAGE_PREFS.DST, "ja") || Objects.equals(LANGUAGE_PREFS.DST, "zh")) {
+        if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
             h = 80;
         }
         else {
@@ -106,7 +106,4 @@ public class create_overlay_translation_text extends Service {
                     }
                 });
     }
-
-//    private void toast(String message) {Toast.makeText(this, message, Toast.LENGTH_SHORT).show();}
-
 }

@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends BaseActivity {
 
@@ -66,6 +67,16 @@ public class MainActivity extends BaseActivity {
     public static TextView textview_debug;
     @SuppressLint("StaticFieldLeak")
     public static TextView textview_debug2;
+
+    private String string_en_src_folder;
+    private String string_en_dst_folder;
+    private String string_src_en_folder;
+    private String string_dst_en_folder;
+    private File file_en_src_folder;
+    private File file_en_dst_folder;
+    private File file_src_en_folder;
+    private File file_dst_en_folder;
+    private String mlkit_status_message = "";
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
@@ -168,6 +179,10 @@ public class MainActivity extends BaseActivity {
         PackageManager pm = getPackageManager();
         boolean isInstalled = isPackageInstalled("com.google.android.googlequicksearchbox", pm);
         if (!isInstalled) Toast.makeText(this,"Please install Googple app (com.google.android.googlequicksearchbox)",Toast.LENGTH_SHORT).show();
+        /*for (PackageInfo packageInfo: packageManager.getInstalledPackages(0)) {
+            if (packageInfo.packageName.contains("com.google.android.googlequicksearchbox"))
+                //textview_debug.setText(packageInfo.packageName + ", "  + packageInfo.versionName);
+        }*/
         if (isInstalled) ri.setPackage("com.google.android.googlequicksearchbox");
 
         this.sendOrderedBroadcast(ri,null,new BroadcastReceiver() {
@@ -210,51 +225,60 @@ public class MainActivity extends BaseActivity {
                 if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_translation_text();
 
                 String src_country = spinner_src_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.SRC_DIALECT = countries_dialects.get(src_country);
-                if (LANGUAGE_PREFS.SRC_DIALECT != null) {
-                    LANGUAGE_PREFS.SRC = LANGUAGE_PREFS.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.SRC = "zh";
+                LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
+                if (LANGUAGE.SRC_DIALECT != null) {
+                    LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
+                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE_PREFS.SRC_DIALECT);
-                textview_src.setText(LANGUAGE_PREFS.SRC);
+                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
+                textview_src.setText(LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.DST_DIALECT = countries_dialects.get(dst_country);
-                if (LANGUAGE_PREFS.DST_DIALECT != null) {
-                    LANGUAGE_PREFS.DST = LANGUAGE_PREFS.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.DST = "zh";
+                LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
+                if (LANGUAGE.DST_DIALECT != null) {
+                    LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
+                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE_PREFS.DST_DIALECT);
-                textview_dst.setText(LANGUAGE_PREFS.DST);
-                check_dictionary();
+                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
+                textview_dst.setText(LANGUAGE.DST);
+
+                string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
+                string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
+                string_src_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + "en" ;
+                string_dst_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_dst.getText() + "_" + "en" ;
+                file_en_src_folder = new File(string_en_src_folder);
+                file_en_dst_folder = new File(string_en_dst_folder);
+                file_src_en_folder = new File(string_src_en_folder);
+                file_dst_en_folder = new File(string_dst_en_folder);
+                check_mlkit_dictionary();
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
                 String src_country = spinner_src_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.SRC_DIALECT = countries_dialects.get(src_country);
-                if (LANGUAGE_PREFS.SRC_DIALECT != null) {
-                    LANGUAGE_PREFS.SRC = LANGUAGE_PREFS.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.SRC = "zh";
+                LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
+                if (LANGUAGE.SRC_DIALECT != null) {
+                    LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
+                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE_PREFS.SRC_DIALECT);
-                textview_src.setText(LANGUAGE_PREFS.SRC);
+                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
+                textview_src.setText(LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.DST_DIALECT = countries_dialects.get(dst_country);
-                if (LANGUAGE_PREFS.DST_DIALECT != null) {
-                    LANGUAGE_PREFS.DST = LANGUAGE_PREFS.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.DST = "zh";
+                LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
+                if (LANGUAGE.DST_DIALECT != null) {
+                    LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
+                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE_PREFS.DST_DIALECT);
-                textview_dst.setText(LANGUAGE_PREFS.DST);
+                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
+                textview_dst.setText(LANGUAGE.DST);
             }
         });
 
@@ -268,52 +292,60 @@ public class MainActivity extends BaseActivity {
                 if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_translation_text();
 
                 String src_country = spinner_src_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.SRC_DIALECT = countries_dialects.get(src_country);
-                if (LANGUAGE_PREFS.SRC_DIALECT != null) {
-                    LANGUAGE_PREFS.SRC = LANGUAGE_PREFS.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.SRC = "zh";
+                LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
+                if (LANGUAGE.SRC_DIALECT != null) {
+                    LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
+                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE_PREFS.SRC_DIALECT);
-                textview_src.setText(LANGUAGE_PREFS.SRC);
+                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
+                textview_src.setText(LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.DST_DIALECT = countries_dialects.get(dst_country);
-                if (LANGUAGE_PREFS.DST_DIALECT != null) {
-                    LANGUAGE_PREFS.DST = LANGUAGE_PREFS.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.DST = "zh";
+                LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
+                if (LANGUAGE.DST_DIALECT != null) {
+                    LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
+                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE_PREFS.DST_DIALECT);
-                textview_dst.setText(LANGUAGE_PREFS.DST);
-                check_dictionary();
+                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
+                textview_dst.setText(LANGUAGE.DST);
+                string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
+                string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
+                string_src_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + "en" ;
+                string_dst_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_dst.getText() + "_" + "en" ;
+                file_en_src_folder = new File(string_en_src_folder);
+                file_en_dst_folder = new File(string_en_dst_folder);
+                file_src_en_folder = new File(string_src_en_folder);
+                file_dst_en_folder = new File(string_dst_en_folder);
+                check_mlkit_dictionary();
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
 
                 String src_country = spinner_src_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.SRC_DIALECT = countries_dialects.get(src_country);
-                if (LANGUAGE_PREFS.SRC_DIALECT != null) {
-                    LANGUAGE_PREFS.SRC = LANGUAGE_PREFS.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.SRC = "zh";
+                LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
+                if (LANGUAGE.SRC_DIALECT != null) {
+                    LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
+                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE_PREFS.SRC_DIALECT);
-                textview_src.setText(LANGUAGE_PREFS.SRC);
+                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
+                textview_src.setText(LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
-                LANGUAGE_PREFS.DST_DIALECT = countries_dialects.get(dst_country);
-                if (LANGUAGE_PREFS.DST_DIALECT != null) {
-                    LANGUAGE_PREFS.DST = LANGUAGE_PREFS.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE_PREFS.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE_PREFS.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE_PREFS.DST = "zh";
+                LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
+                if (LANGUAGE.DST_DIALECT != null) {
+                    LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
+                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
+                        LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE_PREFS.DST_DIALECT);
-                textview_dst.setText(LANGUAGE_PREFS.DST);
+                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
+                textview_dst.setText(LANGUAGE.DST);
             }
         });
 
@@ -349,6 +381,47 @@ public class MainActivity extends BaseActivity {
 
     public void setup_spinner(ArrayList<String> supported_languages)
     {
+        /*File dir = new File(this.getFilesDir(), "mydir");
+        if(!(dir.exists())){
+            dir.mkdir();
+        }
+        try {
+            File gpxfile1 = new File(dir, "supported_languages.txt");
+            FileWriter writer = new FileWriter(gpxfile1);
+            for (int i = 0; i < supported_languages.size(); i++) {
+                writer.append("\"" + supported_languages.get(i) + "\""+"\n");
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        try {
+            File gpxfile2 = new File(dir, "dialects.txt");
+            FileWriter writer = new FileWriter(gpxfile2);
+            for (int i = 0; i < supported_languages.size(); i++) {
+                writer.append("\""+dialects[i]+"\""+"\n");
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        try {
+            File gpxfile3 = new File(dir, "countries_dialects.txt");
+            FileWriter writer = new FileWriter(gpxfile3);
+            for (int i = 0; i < supported_languages.size(); i++) {
+                String string_maps = "[" + "\"" + supported_languages.get(i) + "\"" + "," + "[" + "\"" + dialects[i] + "\"" + "]]," + "\n";
+                writer.append(string_maps);
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }*/
+
         countries_dialects = new HashMap<>();
         for (int i=0;i<supported_languages.size();i++) {
             countries_dialects.put(supported_languages.get(i), dialects[i]);
@@ -389,6 +462,16 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    /*private void checkStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
+    }*/
+
     private void start_create_overlay_mic_button() {
         Intent i = new Intent(this, create_overlay_mic_button.class);
         startService(i);
@@ -425,25 +508,69 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    private void check_dictionary() {
-        String string1 = "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + textview_dst.getText();
-        String string2 = "/no_backup/com.google.mlkit.translate.models/" + textview_dst.getText() + "_" + textview_src.getText();
-        File mydir1 = new File(Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + string1);
-        File mydir2 = new File(Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + string2);
-        String downloaded_status_message;
-        if (mydir1.exists() || mydir2.exists()) {
-            DICTIONARY_MODEL_DOWNLOAD_STATUS.DOWNLOADED = true;
-            downloaded_status_message = "Dictionary is ready to use";
-            textview_debug2.setText(downloaded_status_message);
+    /*public void writeFileOnInternalStorage(Context mcoContext, String sFileName, String sBody){
+        File dir = new File(mcoContext.getFilesDir(), "mydir");
+        if(!(dir.exists())){
+            dir.mkdir();
         }
 
-        if (!(mydir1.exists())) {
-            if (!(mydir2.exists())) {
-                DICTIONARY_MODEL_DOWNLOAD_STATUS.DOWNLOADED = false;
-                downloaded_status_message = "Preparing dictionary, please be patient";
-                textview_debug2.setText(downloaded_status_message);
+        try {
+            File gpxfile = new File(dir, sFileName);
+            FileWriter writer = new FileWriter(gpxfile);
+            writer.append(sBody);
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }*/
+
+    private void check_mlkit_dictionary() {
+        if (Objects.equals(textview_src.getText(), textview_dst.getText())) {
+            MLKIT_DICTIONARY.READY = true;
+            mlkit_status_message = "";
+        }
+        if (Objects.equals(textview_src.getText(), "en")) {
+            if (file_en_dst_folder.exists() || file_dst_en_folder.exists()) {
+                MLKIT_DICTIONARY.READY = true;
+                mlkit_status_message = "Dictionary is ready";
+            } else {
+                MLKIT_DICTIONARY.READY = false;
+                mlkit_status_message = "Dictionary is not ready";
             }
         }
+        if (Objects.equals(textview_dst.getText(), "en")) {
+            if (file_en_src_folder.exists() || file_src_en_folder.exists()) {
+                MLKIT_DICTIONARY.READY = true;
+                mlkit_status_message = "Dictionary is ready";
+            } else {
+                MLKIT_DICTIONARY.READY = false;
+                mlkit_status_message = "Dictionary is not ready";
+            }
+        }
+        if (!(Objects.equals(textview_src.getText(), "en")) && !(Objects.equals(textview_dst.getText(), "en"))) {
+            if ((file_en_src_folder.exists() || file_src_en_folder.exists()) && (file_en_dst_folder.exists()) || file_dst_en_folder.exists()) {
+                MLKIT_DICTIONARY.READY = true;
+                mlkit_status_message = "Dictionary is ready";
+            }
+            else if ((file_en_src_folder.exists() || file_src_en_folder.exists()) && !file_dst_en_folder.exists() && !file_en_dst_folder.exists()) {
+                MLKIT_DICTIONARY.READY = false;
+                mlkit_status_message = "Dictionary is not ready";
+            }
+            else if ((file_en_dst_folder.exists() || file_dst_en_folder.exists()) && !file_src_en_folder.exists() && !file_en_src_folder.exists()) {
+                MLKIT_DICTIONARY.READY = false;
+                mlkit_status_message = "Dictionary is not ready";
+            }
+            else if (!file_en_src_folder.exists() && !file_en_dst_folder.exists() && !file_src_en_folder.exists() && !file_dst_en_folder.exists()) {
+                MLKIT_DICTIONARY.READY = false;
+                mlkit_status_message = "Dictionary is not ready";
+            }
+        }
+        textview_debug2.setText(mlkit_status_message);
+    }
+
+    private void toast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
 }
