@@ -78,6 +78,10 @@ public class MainActivity extends BaseActivity {
     private File file_dst_en_folder;
     private String mlkit_status_message = "";
 
+    //DON'T FORGET TO MODIFY AndroidManifest.xml
+    //         <activity
+    //            android:name=".MainActivity"
+    //            android:configChanges="keyboardHidden|screenSize|orientation|screenLayout|navigation"
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
