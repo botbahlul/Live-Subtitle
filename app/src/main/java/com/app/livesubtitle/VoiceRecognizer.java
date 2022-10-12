@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
+//import android.media.AudioFormat;
+import android.media.AudioFormat;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.speech.RecognitionListener;
@@ -20,6 +22,7 @@ import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -43,27 +46,43 @@ public class VoiceRecognizer extends Service {
     public void onCreate() {
         super.onCreate();
         //private String LOG_TAG = "VoiceRecognitionActivity";
+        int h;
+        if (Objects.equals(LANGUAGE.SRC, "ja") || Objects.equals(LANGUAGE.SRC, "zh")) {
+            h = 122;
+        }
+        else {
+            h = 109;
+        }
+        MainActivity.voice_text.setHeight((int) (h * getResources().getDisplayMetrics().density));
+
         String src_dialect = LANGUAGE.SRC_DIALECT;
         Timer timer = new Timer();
         if(speechRecognizer != null) speechRecognizer.destroy();
         //Log.i(LOG_TAG, "isRecognitionAvailable: " + SpeechRecognizer.isRecognitionAvailable(this));
 
+        String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+        MainActivity.textview_recognizing.setText(string_recognizing);
+        String string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+        MainActivity.textview_overlaying.setText(string_overlaying);
+
         if(SpeechRecognizer.isRecognitionAvailable(this)) {
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
             speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
-            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, Objects.requireNonNull(getClass().getPackage()).getName());
+            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, Objects.requireNonNull(getClass().getPackage()).getName());
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
-            speechRecognizerIntent.putExtra("android.speech.extra.HIDE_PARTIAL_TRAILING_PUNCTUATION", true);
-            speechRecognizerIntent.putExtra("android.speech.extra.DICTATION_MODE", true);
-            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
-            //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT",AudioFormat.ENCODING_PCM_8BIT);
+            //speechRecognizerIntent.putExtra("android.speech.extra.HIDE_PARTIAL_TRAILING_PUNCTUATION", true);
+            //speechRecognizerIntent.putExtra("android.speech.extra.DICTATION_MODE", true);
+            //speechRecognizerIntent.putExtra("android.speech.extra.AUDIO_SOURCE",true);
             //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO",true);
+            //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", AudioFormat.ENCODING_PCM_8BIT);
+            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, src_dialect);
-            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 3600000);
-            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
+            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,3600000);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
+            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
             speechRecognizer.setRecognitionListener(new RecognitionListener() {
                 @Override
@@ -118,7 +137,7 @@ public class VoiceRecognizer extends Service {
                         if (translator != null) translator.close();
                     } else {
                         ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                        VOICE_TEXT.STRING = matches.get(0);
+                        VOICE_TEXT.STRING = matches.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
                         MainActivity.voice_text.setText(VOICE_TEXT.STRING);
                         MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
                         speechRecognizer.startListening(speechRecognizerIntent);
@@ -135,12 +154,12 @@ public class VoiceRecognizer extends Service {
                         ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         if (PREFER_OFFLINE_STATUS.OFFLINE) {
                             ArrayList<String> unstableData = results.getStringArrayList("android.speech.extra.UNSTABLE_TEXT");
-                            VOICE_TEXT.STRING = data.get(0) + unstableData.get(0);
+                            VOICE_TEXT.STRING = data.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC)) + unstableData.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
                         } else {
                             StringBuilder text = new StringBuilder();
                             for (String result : data)
                                 text.append(result);
-                            VOICE_TEXT.STRING = text.toString();
+                            VOICE_TEXT.STRING = text.toString().toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
                         }
                         MainActivity.voice_text.setText(VOICE_TEXT.STRING);
                         MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
@@ -209,7 +228,7 @@ public class VoiceRecognizer extends Service {
 
     }
 
-    @Override
+    /*@Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -231,7 +250,7 @@ public class VoiceRecognizer extends Service {
                 stopSelf();
             }
         }
-    }
+    }*/
 
     @Override
     public void onDestroy() {

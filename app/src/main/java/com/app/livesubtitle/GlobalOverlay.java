@@ -6,7 +6,6 @@ import android.content.pm.ActivityInfo;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.util.DisplayMetrics;
-//import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,11 +14,6 @@ import android.view.ViewConfiguration;
 import android.view.WindowManager;
 
 public class GlobalOverlay {
-    //private static final String LOGCAT_TAG = "GlobalOverlay";
-    /*private static void log(String message) {
-        Log.d(LOGCAT_TAG, message);
-    }*/
-
     private final Context mContext;
     private final WindowManager mWindowManager;
     private final View mRemoveView;
@@ -30,8 +24,6 @@ public class GlobalOverlay {
     private WindowManager.LayoutParams mOverlayLayoutParams;
     public static int DisplayWidth;
     public static int DisplayHeight;
-    //public static int X;
-    //public static int Y;
 
     private final DisplayMetrics display = new DisplayMetrics();
 
@@ -85,7 +77,7 @@ public class GlobalOverlay {
 
         DisplayWidth = display.widthPixels;
         DisplayHeight = display.heightPixels;
-        //float d = display.density;
+        float d = display.density;
 
         mOverlayView = view;
         mOnClickListener = onClickListener;
@@ -117,7 +109,6 @@ public class GlobalOverlay {
                 System.getProperty("line.separator")+
                 "mOverlayLayoutParams.y="+
                 mOverlayLayoutParams.y);*/
-
     }
 
     /** Manually remove an overlay without destroying the service. */
@@ -135,16 +126,10 @@ public class GlobalOverlay {
         }
     }
 
-//    /** Remove all views. This instance becomes unusable after calling this. */
-//    public void destroy() {
-//      TODO: Remove all views, when it's possible to have multiple overlays.
-//    }
-
     /** Provides the drag ability for the overlay view. This touch listener
      * allows user to drag the view anywhere on screen. */
     private View.OnTouchListener newSimpleOnTouchListener() {
         return new View.OnTouchListener() {
-            //            private long timeStart; // Maybe use in the future, with ViewConfiguration's getLongClickTime or whatever it is called.
             private int initialX;
             private int initialY;
             private float initialTouchX;
@@ -161,7 +146,6 @@ public class GlobalOverlay {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
-                        //timeStart = System.currentTimeMillis();
                         initialX = mOverlayLayoutParams.x;
                         initialY = mOverlayLayoutParams.y;
                         initialTouchX = event.getRawX();
@@ -172,24 +156,16 @@ public class GlobalOverlay {
                         mOverlayLayoutParams.x = initialX + (int) (event.getRawX() - initialTouchX);
                         mOverlayLayoutParams.y = initialY + (int) (event.getRawY() - initialTouchY);
                         mWindowManager.updateViewLayout(mOverlayView, mOverlayLayoutParams);
-
                         mOverlayView.getLocationOnScreen(overlayViewLocation);
                         mRemoveView.getLocationOnScreen(removeViewLocation);
                         isOverRemoveView = isPointInArea(overlayViewLocation[0], overlayViewLocation[1],
                                 removeViewLocation[0], removeViewLocation[1], mRemoveView.getWidth());
                         IS_OVER_REMOVEVIEW.IS_OVER = isOverRemoveView;
-                        //if (isOverRemoveView) {
-                            // TODO: Maybe, make it look like the overlay view is perfectly on the remove view.
-                        //}
 
                         return true;
                     case MotionEvent.ACTION_UP:
                         if (isOverRemoveView) {
                             removeOverlayView(v, true);
-                            // Not sure if setting to null is the best way to handle this. Though,
-                            // currently it's needed to prevent a `IllegalArgumentException ... not attached to window manager`
-//                            v = null;
-//                            destroy();
                         } else {
                             if (mOnClickListener != null && Math.abs(initialTouchY - event.getRawY()) <= touchSlop) {
                                 mOnClickListener.onClick(v);
@@ -209,8 +185,6 @@ public class GlobalOverlay {
 
     /** Return true if point (x1,y1) is in the square defined by (x2,y2) with radius, otherwise false.  */
     private boolean isPointInArea(int x1, int y1, int x2, int y2, int radius) {
-//        log("isPointInArea(). x1=" + x1 + ",y1=" + y1);
-//        log("isPointInArea(). x2=" + x2 + ",y2=" + y2 + ",radius=" + radius);
         return x1 >= x2 - radius && x1 <= x2 + radius && y1 >= y2 - radius && y1 <=  y2 + radius;
     }
 
@@ -224,7 +198,7 @@ public class GlobalOverlay {
                     WindowManager.LayoutParams.TYPE_PHONE,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                     PixelFormat.TRANSLUCENT);
-            params.gravity = Gravity.CENTER_HORIZONTAL | Gravity.START;
+            //params.gravity = Gravity.CENTER_HORIZONTAL | Gravity.START;
         }
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             params = new WindowManager.LayoutParams(
@@ -233,7 +207,7 @@ public class GlobalOverlay {
                     WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                     PixelFormat.TRANSLUCENT);
-            params.gravity = Gravity.CENTER_HORIZONTAL | Gravity.START;
+            //params.gravity = Gravity.CENTER_HORIZONTAL | Gravity.START;
             params.setColorMode(ActivityInfo.COLOR_MODE_HDR);
         }
         //MainActivity.textview_debug.setText(String.valueOf(DISPLAY_METRIC.WIDTH));

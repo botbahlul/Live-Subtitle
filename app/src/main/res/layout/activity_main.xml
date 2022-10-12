@@ -47,7 +47,7 @@
             android:gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:textSize="14sp"
             />
         <TextView
             android:id="@+id/textview_src"
@@ -55,11 +55,11 @@
             android:gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:textSize="14sp"
             />
         <View
             android:layout_width="match_parent"
-            android:layout_height="18sp"
+            android:layout_height="12sp"
             />
         <LinearLayout
             android:layout_width="match_parent"
@@ -80,7 +80,26 @@
         </LinearLayout>
         <View
             android:layout_width="match_parent"
-            android:layout_height="18sp"
+            android:layout_height="12sp"
+            />
+        <EditText
+            android:id="@+id/voice_text"
+            android:layout_width="match_parent"
+            android:layout_height="102dp"
+            android:autofillHints=""
+            android:gravity="center"
+            android:focusable="false"
+            android:focusableInTouchMode="true"
+            android:hint="@string/recognized_words"
+            android:maxLines="3"
+            android:textSize="18sp"
+            android:textAlignment="gravity"
+            android:textColorHint="#616161"
+            tools:ignore="LabelFor,TextFields"
+            />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12sp"
             />
         <TextView
             android:id="@+id/textview_text2"
@@ -109,7 +128,7 @@
             android:gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:textSize="14sp"
             />
         <TextView
             android:id="@+id/textview_dst"
@@ -117,11 +136,11 @@
             android:gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
+            android:textSize="14sp"
             />
         <View
             android:layout_width="match_parent"
-            android:layout_height="18sp"
+            android:layout_height="12sp"
             />
         <Button
             android:id="@+id/button_toggle_overlay"
@@ -133,25 +152,24 @@
             />
         <View
             android:layout_width="match_parent"
-            android:layout_height="18sp"
+            android:layout_height="12sp"
             />
-        <EditText
-            android:id="@+id/voice_text"
-            android:layout_width="match_parent"
-            android:layout_height="96dp"
-            android:autofillHints=""
-            android:gravity="center"
-            android:focusable="false"
-            android:focusableInTouchMode="true"
-            android:maxLines="3"
-            android:textSize="18sp"
+        <TextView
+            android:id="@+id/textview_recognizing"
             android:textAlignment="gravity"
-            android:textColorHint="#616161"
-            tools:ignore="SpeakableTextPresentCheck"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="14sp"
             />
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="18sp"
+        <TextView
+            android:id="@+id/textview_overlaying"
+            android:textAlignment="gravity"
+            android:gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
             />
         <TextView
             android:id="@+id/textview_debug"
@@ -159,11 +177,11 @@
             android:layout_height="wrap_content"
             android:textAlignment="gravity"
             android:gravity="center"
-            android:textSize="18sp"
+            android:textSize="14sp"
             />
         <View
             android:layout_width="match_parent"
-            android:layout_height="16sp"
+            android:layout_height="12sp"
             />
         <TextView
             android:id="@+id/textview_debug2"
@@ -171,8 +189,7 @@
             android:layout_height="wrap_content"
             android:textAlignment="gravity"
             android:gravity="center"
-            android:textSize="18sp"
+            android:textSize="14sp"
             />
-
     </TableLayout>
 </ScrollView>

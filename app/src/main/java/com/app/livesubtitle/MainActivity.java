@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Environment;
@@ -64,6 +65,10 @@ public class MainActivity extends BaseActivity {
     public static AudioManager audio;
     public static int mStreamVolume;
     @SuppressLint("StaticFieldLeak")
+    public static TextView textview_recognizing;
+    @SuppressLint("StaticFieldLeak")
+    public static TextView textview_overlaying;
+    @SuppressLint("StaticFieldLeak")
     public static TextView textview_debug;
     @SuppressLint("StaticFieldLeak")
     public static TextView textview_debug2;
@@ -82,13 +87,15 @@ public class MainActivity extends BaseActivity {
     //         <activity
     //            android:name=".MainActivity"
     //            android:configChanges="keyboardHidden|screenSize|orientation|screenLayout|navigation"
-    @Override
+    /*@Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             DISPLAY_METRIC.DISPLAY_WIDTH = 0;
             DISPLAY_METRIC.DISPLAY_HEIGHT = 0;
             DISPLAY_METRIC.DISPLAY_DENSITY = 0;
+            display = null;
+            display = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(display);
             float d = display.density;
             DISPLAY_METRIC.DISPLAY_WIDTH = display.widthPixels;
@@ -112,6 +119,8 @@ public class MainActivity extends BaseActivity {
             DISPLAY_METRIC.DISPLAY_WIDTH = 0;
             DISPLAY_METRIC.DISPLAY_HEIGHT = 0;
             DISPLAY_METRIC.DISPLAY_DENSITY = 0;
+            display = null;
+            display = new DisplayMetrics();
             getWindowManager().getDefaultDisplay().getMetrics(display);
             float d = display.density;
             DISPLAY_METRIC.DISPLAY_WIDTH = display.widthPixels;
@@ -131,7 +140,7 @@ public class MainActivity extends BaseActivity {
                 start_voice_recognizer();
             }
         }
-    }
+    }*/
 
     @SuppressLint({"ClickableViewAccessibility", "QueryPermissionsNeeded", "SetTextI18n"})
     @Override
@@ -150,6 +159,8 @@ public class MainActivity extends BaseActivity {
         textview_dst_dialect = findViewById(R.id.textview_dst_dialect);
         textview_dst = findViewById(R.id.textview_dst);
         voice_text = findViewById(R.id.voice_text);
+        textview_recognizing = findViewById(R.id.textview_recognizing);
+        textview_overlaying = findViewById(R.id.textview_overlaying);
         textview_debug = findViewById(R.id.textview_debug);
         textview_debug2 = findViewById(R.id.textview_debug2);
         VOICE_TEXT.STRING = "";
@@ -164,7 +175,23 @@ public class MainActivity extends BaseActivity {
         DISPLAY_METRIC.DISPLAY_WIDTH = display.widthPixels;
         DISPLAY_METRIC.DISPLAY_HEIGHT = display.heightPixels;
         DISPLAY_METRIC.DISPLAY_DENSITY = d;
+
+        /*if(savedInstanceState!=null)
+        {
+            OVERLAYING_STATUS.OVERLAYING = savedInstanceState.getBoolean("overlaying");
+            RECOGNIZING_STATUS.RECOGNIZING = savedInstanceState.getBoolean("recognizing");
+            //display = (DisplayMetrics) savedInstanceState.get("display");
+        } else {
+            RECOGNIZING_STATUS.RECOGNIZING = false;
+            OVERLAYING_STATUS.OVERLAYING = false;
+        }*/
+
         RECOGNIZING_STATUS.RECOGNIZING = false;
+        OVERLAYING_STATUS.OVERLAYING = false;
+        String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+        textview_recognizing.setText(string_recognizing);
+        String string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+        textview_overlaying.setText(string_overlaying);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -183,6 +210,10 @@ public class MainActivity extends BaseActivity {
         PackageManager pm = getPackageManager();
         boolean isInstalled = isPackageInstalled("com.google.android.googlequicksearchbox", pm);
         if (!isInstalled) Toast.makeText(this,"Please install Googple app (com.google.android.googlequicksearchbox)",Toast.LENGTH_SHORT).show();
+        /*for (PackageInfo packageInfo: packageManager.getInstalledPackages(0)) {
+            if (packageInfo.packageName.contains("com.google.android.googlequicksearchbox"))
+                //textview_debug.setText(packageInfo.packageName + ", "  + packageInfo.versionName);
+        }*/
         if (isInstalled) ri.setPackage("com.google.android.googlequicksearchbox");
 
         this.sendOrderedBroadcast(ri,null,new BroadcastReceiver() {
@@ -224,6 +255,9 @@ public class MainActivity extends BaseActivity {
                 stop_create_overlay_translation_text();
                 if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_translation_text();
 
+                stop_create_overlay_mic_button();
+                if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_mic_button();
+
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
@@ -255,6 +289,39 @@ public class MainActivity extends BaseActivity {
                 file_src_en_folder = new File(string_src_en_folder);
                 file_dst_en_folder = new File(string_dst_en_folder);
                 check_mlkit_dictionary();
+
+                int h;
+                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
+                    h = 75;
+                }
+                else {
+                    h = 62;
+                }
+                voice_text.setHeight((int) (h * getResources().getDisplayMetrics().density));
+
+                stop_voice_recognizer();
+                stop_create_overlay_translation_text();
+                stop_create_overlay_mic_button();
+                if (OVERLAYING_STATUS.OVERLAYING) {
+                    if (!RECOGNIZING_STATUS.RECOGNIZING) {
+                        if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setImageResource(R.drawable.ic_mic_black_off);
+                    } else {
+                        start_voice_recognizer();
+                        if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setImageResource(R.drawable.ic_mic_black_on);
+                    }
+                    start_create_overlay_mic_button();
+                    if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setBackgroundColor(Color.parseColor("#80000000"));
+
+                    start_create_overlay_translation_text();
+                    if (TRANSLATION_TEXT.STRING.length() > 0) {
+                        if (create_overlay_translation_text.overlay_translation_text != null) create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
+                    }
+                }
+
+                String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+                textview_recognizing.setText(string_recognizing);
+                String string_overlaying =  "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                textview_overlaying.setText(string_overlaying);
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -291,6 +358,9 @@ public class MainActivity extends BaseActivity {
                 stop_create_overlay_translation_text();
                 if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_translation_text();
 
+                stop_create_overlay_mic_button();
+                if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_mic_button();
+
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
@@ -321,6 +391,39 @@ public class MainActivity extends BaseActivity {
                 file_src_en_folder = new File(string_src_en_folder);
                 file_dst_en_folder = new File(string_dst_en_folder);
                 check_mlkit_dictionary();
+
+                int h;
+                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
+                    h = 75;
+                }
+                else {
+                    h = 62;
+                }
+                voice_text.setHeight((int) (h * getResources().getDisplayMetrics().density));
+
+                stop_voice_recognizer();
+                stop_create_overlay_translation_text();
+                stop_create_overlay_mic_button();
+                if (OVERLAYING_STATUS.OVERLAYING) {
+                    if (!RECOGNIZING_STATUS.RECOGNIZING) {
+                        if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setImageResource(R.drawable.ic_mic_black_off);
+                    } else {
+                        start_voice_recognizer();
+                        if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setImageResource(R.drawable.ic_mic_black_on);
+                    }
+                    start_create_overlay_mic_button();
+                    if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setBackgroundColor(Color.parseColor("#80000000"));
+
+                    start_create_overlay_translation_text();
+                    if (TRANSLATION_TEXT.STRING.length() > 0) {
+                        if (create_overlay_translation_text.overlay_translation_text != null) create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
+                    }
+                }
+
+                String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+                textview_recognizing.setText(string_recognizing);
+                String string_overlaying =  "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                textview_overlaying.setText(string_overlaying);
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -354,19 +457,46 @@ public class MainActivity extends BaseActivity {
             public boolean onTouch(View v, MotionEvent e) {
                 if (e.getAction() == MotionEvent.ACTION_DOWN) {
                     OVERLAYING_STATUS.OVERLAYING = !OVERLAYING_STATUS.OVERLAYING;
+                    String string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                    textview_overlaying.setText(string_overlaying);
                     checkDrawOverlayPermission();
                     if (OVERLAYING_STATUS.OVERLAYING) {
                         start_create_overlay_mic_button();
                         start_create_overlay_translation_text();
                     } else {
-                        VOICE_TEXT.STRING = "";
-                        TRANSLATION_TEXT.STRING = "";
-                        voice_text.setText("");
-                        create_overlay_translation_text.overlay_translation_text.setText("");
                         stop_voice_recognizer();
                         stop_create_overlay_translation_text();
                         stop_create_overlay_mic_button();
                         RECOGNIZING_STATUS.RECOGNIZING = false;
+                        String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+                        textview_recognizing.setText(string_recognizing);
+                        string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                        textview_overlaying.setText(string_overlaying);
+                        MainActivity.textview_debug.setText("");
+                        VOICE_TEXT.STRING = "";
+                        TRANSLATION_TEXT.STRING = "";
+                        MainActivity.voice_text.setText("");
+                        String hints = "Recognized words";
+                        MainActivity.voice_text.setHint(hints);
+                        MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, (int)Double.parseDouble(String.valueOf((long)(MainActivity.audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION) / 2))), 0);
+                        if (create_overlay_translation_text.overlay_translation_text != null) {
+                            create_overlay_translation_text.overlay_translation_text.setText("");
+                            create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
+                            create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                        }
+                        if (create_overlay_mic_button.mic_button != null) {
+                            create_overlay_mic_button.mic_button.setVisibility(View.INVISIBLE);
+                        }
+                        MainActivity.textview_debug.setText("");
+                        VOICE_TEXT.STRING = "";
+                        TRANSLATION_TEXT.STRING = "";
+                        MainActivity.voice_text.setText("");
+                        string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+                        textview_recognizing.setText(string_recognizing);
+                        string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                        textview_overlaying.setText(string_overlaying);
+                        hints = "Recognized words";
+                        MainActivity.voice_text.setHint(hints);
                     }
                 }
                 return false;
@@ -374,12 +504,61 @@ public class MainActivity extends BaseActivity {
         });
     }
 
+    /*@Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("overlaying", OVERLAYING_STATUS.OVERLAYING);
+        outState.putBoolean("recognizing", RECOGNIZING_STATUS.RECOGNIZING);
+    }*/
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
     }
 
-    public void setup_spinner(ArrayList<String> supported_languages) {
+    public void setup_spinner(ArrayList<String> supported_languages)
+    {
+        /*File dir = new File(this.getFilesDir(), "mydir");
+        if(!(dir.exists())){
+            dir.mkdir();
+        }
+        try {
+            File gpxfile1 = new File(dir, "supported_languages.txt");
+            FileWriter writer = new FileWriter(gpxfile1);
+            for (int i = 0; i < supported_languages.size(); i++) {
+                writer.append("\"" + supported_languages.get(i) + "\""+"\n");
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        try {
+            File gpxfile2 = new File(dir, "dialects.txt");
+            FileWriter writer = new FileWriter(gpxfile2);
+            for (int i = 0; i < supported_languages.size(); i++) {
+                writer.append("\""+dialects[i]+"\""+"\n");
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        try {
+            File gpxfile3 = new File(dir, "countries_dialects.txt");
+            FileWriter writer = new FileWriter(gpxfile3);
+            for (int i = 0; i < supported_languages.size(); i++) {
+                String string_maps = "[" + "\"" + supported_languages.get(i) + "\"" + "," + "[" + "\"" + dialects[i] + "\"" + "]]," + "\n";
+                writer.append(string_maps);
+            }
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }*/
+
         countries_dialects = new HashMap<>();
         for (int i=0;i<supported_languages.size();i++) {
             countries_dialects.put(supported_languages.get(i), dialects[i]);
@@ -420,6 +599,16 @@ public class MainActivity extends BaseActivity {
         }
     }
 
+    /*private void checkStoragePermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+        }
+    }*/
+
     private void start_create_overlay_mic_button() {
         Intent i = new Intent(this, create_overlay_mic_button.class);
         startService(i);
@@ -455,6 +644,23 @@ public class MainActivity extends BaseActivity {
             return false;
         }
     }
+
+    /*public void writeFileOnInternalStorage(Context mcoContext, String sFileName, String sBody){
+        File dir = new File(mcoContext.getFilesDir(), "mydir");
+        if(!(dir.exists())){
+            dir.mkdir();
+        }
+
+        try {
+            File gpxfile = new File(dir, sFileName);
+            FileWriter writer = new FileWriter(gpxfile);
+            writer.append(sBody);
+            writer.flush();
+            writer.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }*/
 
     private void check_mlkit_dictionary() {
         if (Objects.equals(textview_src.getText(), textview_dst.getText())) {
