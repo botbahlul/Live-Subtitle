@@ -87,60 +87,6 @@ public class MainActivity extends BaseActivity {
     //         <activity
     //            android:name=".MainActivity"
     //            android:configChanges="keyboardHidden|screenSize|orientation|screenLayout|navigation"
-    /*@Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            DISPLAY_METRIC.DISPLAY_WIDTH = 0;
-            DISPLAY_METRIC.DISPLAY_HEIGHT = 0;
-            DISPLAY_METRIC.DISPLAY_DENSITY = 0;
-            display = null;
-            display = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(display);
-            float d = display.density;
-            DISPLAY_METRIC.DISPLAY_WIDTH = display.widthPixels;
-            DISPLAY_METRIC.DISPLAY_HEIGHT = display.heightPixels;
-            DISPLAY_METRIC.DISPLAY_DENSITY = d;
-            if (OVERLAYING_STATUS.OVERLAYING) {
-                stop_create_overlay_mic_button();
-                start_create_overlay_mic_button();
-                stop_create_overlay_translation_text();
-                start_create_overlay_translation_text();
-                if (TRANSLATION_TEXT.STRING.length()>0) {
-                    create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-                }
-            }
-            if (RECOGNIZING_STATUS.RECOGNIZING) {
-                stop_voice_recognizer();
-                start_voice_recognizer();
-            }
-        }
-        else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            DISPLAY_METRIC.DISPLAY_WIDTH = 0;
-            DISPLAY_METRIC.DISPLAY_HEIGHT = 0;
-            DISPLAY_METRIC.DISPLAY_DENSITY = 0;
-            display = null;
-            display = new DisplayMetrics();
-            getWindowManager().getDefaultDisplay().getMetrics(display);
-            float d = display.density;
-            DISPLAY_METRIC.DISPLAY_WIDTH = display.widthPixels;
-            DISPLAY_METRIC.DISPLAY_HEIGHT = display.heightPixels;
-            DISPLAY_METRIC.DISPLAY_DENSITY = d;
-            if (OVERLAYING_STATUS.OVERLAYING) {
-                stop_create_overlay_mic_button();
-                start_create_overlay_mic_button();
-                stop_create_overlay_translation_text();
-                start_create_overlay_translation_text();
-                if (TRANSLATION_TEXT.STRING.length()>0) {
-                    create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-                }
-            }
-            if (RECOGNIZING_STATUS.RECOGNIZING) {
-                stop_voice_recognizer();
-                start_voice_recognizer();
-            }
-        }
-    }*/
 
     @SuppressLint({"ClickableViewAccessibility", "QueryPermissionsNeeded", "SetTextI18n"})
     @Override
@@ -176,16 +122,6 @@ public class MainActivity extends BaseActivity {
         DISPLAY_METRIC.DISPLAY_HEIGHT = display.heightPixels;
         DISPLAY_METRIC.DISPLAY_DENSITY = d;
 
-        /*if(savedInstanceState!=null)
-        {
-            OVERLAYING_STATUS.OVERLAYING = savedInstanceState.getBoolean("overlaying");
-            RECOGNIZING_STATUS.RECOGNIZING = savedInstanceState.getBoolean("recognizing");
-            //display = (DisplayMetrics) savedInstanceState.get("display");
-        } else {
-            RECOGNIZING_STATUS.RECOGNIZING = false;
-            OVERLAYING_STATUS.OVERLAYING = false;
-        }*/
-
         RECOGNIZING_STATUS.RECOGNIZING = false;
         OVERLAYING_STATUS.OVERLAYING = false;
         String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
@@ -210,10 +146,6 @@ public class MainActivity extends BaseActivity {
         PackageManager pm = getPackageManager();
         boolean isInstalled = isPackageInstalled("com.google.android.googlequicksearchbox", pm);
         if (!isInstalled) Toast.makeText(this,"Please install Googple app (com.google.android.googlequicksearchbox)",Toast.LENGTH_SHORT).show();
-        /*for (PackageInfo packageInfo: packageManager.getInstalledPackages(0)) {
-            if (packageInfo.packageName.contains("com.google.android.googlequicksearchbox"))
-                //textview_debug.setText(packageInfo.packageName + ", "  + packageInfo.versionName);
-        }*/
         if (isInstalled) ri.setPackage("com.google.android.googlequicksearchbox");
 
         this.sendOrderedBroadcast(ri,null,new BroadcastReceiver() {
@@ -504,61 +436,13 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    /*@Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean("overlaying", OVERLAYING_STATUS.OVERLAYING);
-        outState.putBoolean("recognizing", RECOGNIZING_STATUS.RECOGNIZING);
-    }*/
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
     }
 
-    public void setup_spinner(ArrayList<String> supported_languages)
-    {
-        /*File dir = new File(this.getFilesDir(), "mydir");
-        if(!(dir.exists())){
-            dir.mkdir();
-        }
-        try {
-            File gpxfile1 = new File(dir, "supported_languages.txt");
-            FileWriter writer = new FileWriter(gpxfile1);
-            for (int i = 0; i < supported_languages.size(); i++) {
-                writer.append("\"" + supported_languages.get(i) + "\""+"\n");
-            }
-            writer.flush();
-            writer.close();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        try {
-            File gpxfile2 = new File(dir, "dialects.txt");
-            FileWriter writer = new FileWriter(gpxfile2);
-            for (int i = 0; i < supported_languages.size(); i++) {
-                writer.append("\""+dialects[i]+"\""+"\n");
-            }
-            writer.flush();
-            writer.close();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        try {
-            File gpxfile3 = new File(dir, "countries_dialects.txt");
-            FileWriter writer = new FileWriter(gpxfile3);
-            for (int i = 0; i < supported_languages.size(); i++) {
-                String string_maps = "[" + "\"" + supported_languages.get(i) + "\"" + "," + "[" + "\"" + dialects[i] + "\"" + "]]," + "\n";
-                writer.append(string_maps);
-            }
-            writer.flush();
-            writer.close();
-        } catch (Exception e){
-            e.printStackTrace();
-        }*/
-
+    public void setup_spinner(ArrayList<String> supported_languages) {
         countries_dialects = new HashMap<>();
         for (int i=0;i<supported_languages.size();i++) {
             countries_dialects.put(supported_languages.get(i), dialects[i]);
@@ -569,21 +453,9 @@ public class MainActivity extends BaseActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_textview_align, supported_languages);
         adapter.setDropDownViewResource(R.layout.spinner_textview_align);
         spinner_src_languages.setAdapter(adapter);
-        spinner_src_languages.setSelection
-                (
-                        supported_languages.indexOf
-                                (
-                                        "Indonesian (Indonesia)"
-                                )
-                );
+        spinner_src_languages.setSelection(supported_languages.indexOf("Indonesian (Indonesia)"));
         spinner_dst_languages.setAdapter(adapter);
-        spinner_dst_languages.setSelection
-                (
-                        supported_languages.indexOf
-                                (
-                                        "English (United States)"
-                                )
-                );
+        spinner_dst_languages.setSelection(supported_languages.indexOf("English (United States)"));
     }
 
     private void checkRecordAudioPermission() {
@@ -598,16 +470,6 @@ public class MainActivity extends BaseActivity {
             startActivity(myIntent);
         }
     }
-
-    /*private void checkStoragePermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-        }
-    }*/
 
     private void start_create_overlay_mic_button() {
         Intent i = new Intent(this, create_overlay_mic_button.class);
@@ -644,23 +506,6 @@ public class MainActivity extends BaseActivity {
             return false;
         }
     }
-
-    /*public void writeFileOnInternalStorage(Context mcoContext, String sFileName, String sBody){
-        File dir = new File(mcoContext.getFilesDir(), "mydir");
-        if(!(dir.exists())){
-            dir.mkdir();
-        }
-
-        try {
-            File gpxfile = new File(dir, sFileName);
-            FileWriter writer = new FileWriter(gpxfile);
-            writer.append(sBody);
-            writer.flush();
-            writer.close();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-    }*/
 
     private void check_mlkit_dictionary() {
         if (Objects.equals(textview_src.getText(), textview_dst.getText())) {
