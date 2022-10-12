@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.content.res.Configuration;
-//import android.media.AudioFormat;
 import android.media.AudioFormat;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -45,7 +44,6 @@ public class VoiceRecognizer extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        //private String LOG_TAG = "VoiceRecognitionActivity";
         int h;
         if (Objects.equals(LANGUAGE.SRC, "ja") || Objects.equals(LANGUAGE.SRC, "zh")) {
             h = 122;
@@ -58,7 +56,6 @@ public class VoiceRecognizer extends Service {
         String src_dialect = LANGUAGE.SRC_DIALECT;
         Timer timer = new Timer();
         if(speechRecognizer != null) speechRecognizer.destroy();
-        //Log.i(LOG_TAG, "isRecognitionAvailable: " + SpeechRecognizer.isRecognitionAvailable(this));
 
         String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
         MainActivity.textview_recognizing.setText(string_recognizing);
@@ -69,7 +66,6 @@ public class VoiceRecognizer extends Service {
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
             speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
 
-            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, Objects.requireNonNull(getClass().getPackage()).getName());
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
             //speechRecognizerIntent.putExtra("android.speech.extra.HIDE_PARTIAL_TRAILING_PUNCTUATION", true);
@@ -77,37 +73,26 @@ public class VoiceRecognizer extends Service {
             //speechRecognizerIntent.putExtra("android.speech.extra.AUDIO_SOURCE",true);
             //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO",true);
             //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", AudioFormat.ENCODING_PCM_8BIT);
-            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, src_dialect);
             //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,3600000);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
-            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
             speechRecognizer.setRecognitionListener(new RecognitionListener() {
                 @Override
-                public void onReadyForSpeech(Bundle arg0) {
-                    //Log.i(LOG_TAG, "onReadyForSpeech");
-                }
+                public void onReadyForSpeech(Bundle arg0) {}
 
                 @Override
-                public void onBeginningOfSpeech() {
-                    //Log.i(LOG_TAG, "onBeginningOfSpeech");
-                }
+                public void onBeginningOfSpeech() {}
 
                 @Override
-                public void onRmsChanged(float rmsdB) {
-                    //Log.i(LOG_TAG, "onRmsChanged: " + rmsdB);
-                }
+                public void onRmsChanged(float rmsdB) {}
 
                 @Override
-                public void onBufferReceived(byte[] buffer) {
-                    //Log.i(LOG_TAG, "onBufferReceived: " + buffer);
-                }
+                public void onBufferReceived(byte[] buffer) {}
 
                 @Override
                 public void onEndOfSpeech() {
-                    //Log.i(LOG_TAG, "onEndOfSpeech");
                     if (!RECOGNIZING_STATUS.RECOGNIZING) {
                         speechRecognizer.stopListening();
                         if (translator != null) translator.close();
@@ -120,7 +105,6 @@ public class VoiceRecognizer extends Service {
                 public void onError(int errorCode) {
                     String errorMessage = getErrorText(errorCode);
                     MainActivity.textview_debug.setText(errorMessage);
-                    //Log.i(LOG_TAG, "FAILED " + errorMessage);
                     if (!RECOGNIZING_STATUS.RECOGNIZING) {
                         speechRecognizer.stopListening();
                         if (translator != null) translator.close();
@@ -131,7 +115,6 @@ public class VoiceRecognizer extends Service {
 
                 @Override
                 public void onResults(Bundle results) {
-                    //Log.i(LOG_TAG, "onResults");
                     /*if (!RECOGNIZING_STATUS.RECOGNIZING) {
                         speechRecognizer.stopListening();
                         if (translator != null) translator.close();
@@ -146,7 +129,6 @@ public class VoiceRecognizer extends Service {
 
                 @Override
                 public void onPartialResults(Bundle results) {
-                    //Log.i(LOG_TAG, "onPartialResults");
                     if (!RECOGNIZING_STATUS.RECOGNIZING) {
                         speechRecognizer.stopListening();
                         if (translator != null) translator.close();
@@ -167,9 +149,7 @@ public class VoiceRecognizer extends Service {
                 }
 
                 @Override
-                public void onEvent(int arg0, Bundle arg1) {
-                    //Log.i(LOG_TAG, "onEvent");
-                }
+                public void onEvent(int arg0, Bundle arg1) {}
 
                 public String getErrorText(int errorCode) {
                     String message;
@@ -228,30 +208,6 @@ public class VoiceRecognizer extends Service {
 
     }
 
-    /*@Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            if (RECOGNIZING_STATUS.RECOGNIZING) {
-                speechRecognizer.startListening(speechRecognizerIntent);
-            } else {
-                speechRecognizer.stopListening();
-                if (translator != null) translator.close();
-                stopSelf();
-            }
-        }
-
-        else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT){
-            if (RECOGNIZING_STATUS.RECOGNIZING) {
-                speechRecognizer.startListening(speechRecognizerIntent);
-            } else {
-                speechRecognizer.stopListening();
-                if (translator != null) translator.close();
-                stopSelf();
-            }
-        }
-    }*/
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -299,7 +255,12 @@ public class VoiceRecognizer extends Service {
     }
 
     private void toast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }
