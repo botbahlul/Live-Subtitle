@@ -40,7 +40,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-public class MainActivity extends BaseActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static final Integer RecordAudioRequestCode = 1;
     private DisplayMetrics display;
