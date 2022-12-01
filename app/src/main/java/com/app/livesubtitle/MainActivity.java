@@ -8,11 +8,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.util.DisplayMetrics;
@@ -27,7 +29,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -126,9 +127,9 @@ public class MainActivity extends AppCompatActivity {
         RECOGNIZING_STATUS.RECOGNIZING = false;
         OVERLAYING_STATUS.OVERLAYING = false;
         String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
-        textview_recognizing.setText(string_recognizing);
+        setText(textview_recognizing, string_recognizing);
         String string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-        textview_overlaying.setText(string_overlaying);
+        setText(textview_overlaying, string_overlaying);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -199,8 +200,8 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
-                textview_src.setText(LANGUAGE.SRC);
+                setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
+                setText(textview_src, LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
@@ -210,8 +211,8 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
-                textview_dst.setText(LANGUAGE.DST);
+                setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
+                setText(textview_dst, LANGUAGE.DST);
 
                 string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
                 string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
@@ -246,15 +247,12 @@ public class MainActivity extends AppCompatActivity {
                     if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setBackgroundColor(Color.parseColor("#80000000"));
 
                     start_create_overlay_translation_text();
-                    if (TRANSLATION_TEXT.STRING.length() > 0) {
-                        if (create_overlay_translation_text.overlay_translation_text != null) create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-                    }
                 }
 
                 String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
-                textview_recognizing.setText(string_recognizing);
+                setText(textview_recognizing, string_recognizing);
                 String string_overlaying =  "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                textview_overlaying.setText(string_overlaying);
+                setText(textview_overlaying, string_overlaying);
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -266,8 +264,8 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
-                textview_src.setText(LANGUAGE.SRC);
+                setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
+                setText(textview_src, LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
@@ -277,8 +275,8 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
-                textview_dst.setText(LANGUAGE.DST);
+                setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
+                setText(textview_dst, LANGUAGE.DST);
             }
         });
 
@@ -302,8 +300,8 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
-                textview_src.setText(LANGUAGE.SRC);
+                setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
+                setText(textview_src, LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
@@ -313,8 +311,9 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
-                textview_dst.setText(LANGUAGE.DST);
+                setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
+                setText(textview_dst, LANGUAGE.DST);
+
                 string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
                 string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
                 string_src_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + "en" ;
@@ -348,15 +347,12 @@ public class MainActivity extends AppCompatActivity {
                     if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setBackgroundColor(Color.parseColor("#80000000"));
 
                     start_create_overlay_translation_text();
-                    if (TRANSLATION_TEXT.STRING.length() > 0) {
-                        if (create_overlay_translation_text.overlay_translation_text != null) create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-                    }
                 }
 
                 String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
-                textview_recognizing.setText(string_recognizing);
+                setText(textview_recognizing, string_recognizing);
                 String string_overlaying =  "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                textview_overlaying.setText(string_overlaying);
+                setText(textview_overlaying, string_overlaying);
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -369,8 +365,8 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.SRC = "zh";
                     }
                 }
-                textview_src_dialect.setText(LANGUAGE.SRC_DIALECT);
-                textview_src.setText(LANGUAGE.SRC);
+                setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
+                setText(textview_src, LANGUAGE.SRC);
 
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
@@ -380,8 +376,8 @@ public class MainActivity extends AppCompatActivity {
                         LANGUAGE.DST = "zh";
                     }
                 }
-                textview_dst_dialect.setText(LANGUAGE.DST_DIALECT);
-                textview_dst.setText(LANGUAGE.DST);
+                setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
+                setText(textview_dst, LANGUAGE.DST);
             }
         });
 
@@ -391,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
                 if (e.getAction() == MotionEvent.ACTION_DOWN) {
                     OVERLAYING_STATUS.OVERLAYING = !OVERLAYING_STATUS.OVERLAYING;
                     String string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                    textview_overlaying.setText(string_overlaying);
+                    setText(textview_overlaying, string_overlaying);
                     checkDrawOverlayPermission();
                     if (OVERLAYING_STATUS.OVERLAYING) {
                         start_create_overlay_mic_button();
@@ -402,41 +398,40 @@ public class MainActivity extends AppCompatActivity {
                         stop_create_overlay_mic_button();
                         RECOGNIZING_STATUS.RECOGNIZING = false;
                         String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
-                        textview_recognizing.setText(string_recognizing);
+                        setText(textview_recognizing, string_recognizing);
                         string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                        textview_overlaying.setText(string_overlaying);
-                        MainActivity.textview_debug.setText("");
+                        setText(textview_overlaying, string_overlaying);
+                        setText(textview_debug, "");
                         VOICE_TEXT.STRING = "";
                         TRANSLATION_TEXT.STRING = "";
-                        MainActivity.voice_text.setText("");
+                        setText(voice_text, "");
                         String hints = "Recognized words";
-                        MainActivity.voice_text.setHint(hints);
-                        MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, (int)Double.parseDouble(String.valueOf((long)(MainActivity.audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION) / 2))), 0);
+                        voice_text.setHint(hints);
+                        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, (int)Double.parseDouble(String.valueOf((long)(audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION) / 2))), 0);
                         if (create_overlay_translation_text.overlay_translation_text != null) {
-                            create_overlay_translation_text.overlay_translation_text.setText("");
+                            setText(create_overlay_translation_text.overlay_translation_text, "");
                             create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
                             create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
                         }
                         if (create_overlay_mic_button.mic_button != null) {
                             create_overlay_mic_button.mic_button.setVisibility(View.INVISIBLE);
                         }
-                        MainActivity.textview_debug.setText("");
+                        setText(textview_debug, "");
                         VOICE_TEXT.STRING = "";
                         TRANSLATION_TEXT.STRING = "";
-                        MainActivity.voice_text.setText("");
+                        setText(voice_text, "");
                         string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
-                        textview_recognizing.setText(string_recognizing);
+                        setText(textview_recognizing, string_recognizing);
                         string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                        textview_overlaying.setText(string_overlaying);
+                        setText(textview_overlaying, string_overlaying);
                         hints = "Recognized words";
-                        MainActivity.voice_text.setHint(hints);
+                        voice_text.setHint(hints);
                     }
                 }
                 return false;
             }
         });
     }
-
 
     @Override
     protected void onDestroy() {
@@ -549,7 +544,7 @@ public class MainActivity extends AppCompatActivity {
                 mlkit_status_message = "Dictionary is not ready";
             }
         }
-        textview_debug2.setText(mlkit_status_message);
+        setText(textview_debug2, mlkit_status_message);
     }
 
     private void toast(String message) {
@@ -559,6 +554,17 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void setText(final TextView tv, final String text){
+        Handler handler = new Handler(Looper.getMainLooper()) {
+            @Override
+            public void handleMessage(Message msg) {
+                // Any UI task, example
+                tv.setText(text);
+            }
+        };
+        handler.sendEmptyMessage(1);
     }
 
 }
