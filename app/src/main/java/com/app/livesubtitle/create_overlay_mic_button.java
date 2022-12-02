@@ -3,18 +3,14 @@ package com.app.livesubtitle;
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 
 public class create_overlay_mic_button extends Service {
     public create_overlay_mic_button() {}
@@ -40,8 +36,6 @@ public class create_overlay_mic_button extends Service {
             mGlobalOverlay_mic_button.removeOverlayView(mic_button);
         }
         if (IS_OVER_REMOVEVIEW.IS_OVER) {
-            stop_voice_recognizer();
-            stop_create_overlay_translation_text();
             RECOGNIZING_STATUS.RECOGNIZING = false;
             String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
             MainActivity.textview_recognizing.setText(string_recognizing);
@@ -63,6 +57,8 @@ public class create_overlay_mic_button extends Service {
             if (create_overlay_mic_button.mic_button != null) {
                 create_overlay_mic_button.mic_button.setVisibility(View.INVISIBLE);
             }
+            stop_voice_recognizer();
+            stop_create_overlay_translation_text();
         }
         MainActivity.textview_debug.setText("");
         VOICE_TEXT.STRING = "";

@@ -1,7 +1,5 @@
 package com.app.livesubtitle;
 
-import static com.app.livesubtitle.MainActivity.textview_debug;
-
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
@@ -20,7 +18,7 @@ import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
+//import android.widget.Toast;
 
 import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.nl.translate.Translation;
@@ -50,7 +48,6 @@ public class VoiceRecognizer extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        //private String LOG_TAG = "VoiceRecognitionActivity";
         int h;
         if (Objects.equals(LANGUAGE.SRC, "ja") || Objects.equals(LANGUAGE.SRC, "zh")) {
             h = 122;
@@ -63,7 +60,7 @@ public class VoiceRecognizer extends Service {
         String src_dialect = LANGUAGE.SRC_DIALECT;
         Timer timer = new Timer();
         if(speechRecognizer != null) speechRecognizer.destroy();
-        //setText(textview_debug, "isRecognitionAvailable: " + SpeechRecognizer.isRecognitionAvailable(this));
+        //setText(MainActivity.textview_debug, "isRecognitionAvailable: " + SpeechRecognizer.isRecognitionAvailable(this));
 
         String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
         setText(MainActivity.textview_recognizing, string_recognizing);
@@ -92,111 +89,88 @@ public class VoiceRecognizer extends Service {
             speechRecognizer.setRecognitionListener(new RecognitionListener() {
                 @Override
                 public void onReadyForSpeech(Bundle arg0) {
-                    //setText(textview_debug, "onReadyForSpeech");
+                    //setText(MainActivity.textview_debug, "onReadyForSpeech");
                 }
 
                 @Override
                 public void onBeginningOfSpeech() {
-                    //setText(textview_debug, "onBeginningOfSpeech");
+                    //setText(MainActivity.textview_debug, "onBeginningOfSpeech");
                 }
 
                 @Override
                 public void onRmsChanged(float rmsdB) {
-                    //setText(textview_debug, "onRmsChanged: " + rmsdB);
+                    //setText(MainActivity.textview_debug, "onRmsChanged: " + rmsdB);
                 }
 
                 @Override
                 public void onBufferReceived(byte[] buffer) {
-                    //setText(textview_debug, "onBufferReceived: " + buffer);
+                    //setText(MainActivity.textview_debug, "onBufferReceived: " + buffer);
                 }
 
                 @Override
                 public void onEndOfSpeech() {
-                    Handler handler = new Handler(Looper.getMainLooper()) {
-                        @Override
-                        public void handleMessage(Message msg) {
-                            //setText(textview_debug, "onEndOfSpeech");
-                            if (!RECOGNIZING_STATUS.RECOGNIZING) {
-                                speechRecognizer.stopListening();
-                                if (translator != null) translator.close();
-                            } else {
-                                speechRecognizer.startListening(speechRecognizerIntent);
-                            }
-                        }
-                    };
-                    handler.sendEmptyMessage(1);
+                    //setText(MainActivity.textview_debug, "onEndOfSpeech");
+                    if (!RECOGNIZING_STATUS.RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                        if (translator != null) translator.close();
+                    } else {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                    }
                 }
 
                 @Override
                 public void onError(int errorCode) {
-                    Handler handler = new Handler(Looper.getMainLooper()) {
-                        @Override
-                        public void handleMessage(Message msg) {
-                            //String errorMessage = getErrorText(errorCode);
-                            //setText(textview_debug, "FAILED " + errorMessage);
-                            if (!RECOGNIZING_STATUS.RECOGNIZING) {
-                                speechRecognizer.stopListening();
-                            } else {
-                                speechRecognizer.startListening(speechRecognizerIntent);
-                            }
-                        }
-                    };
-                    handler.sendEmptyMessage(1);
+                    //String errorMessage = getErrorText(errorCode);
+                    //setText(MainActivity.textview_debug, "FAILED " + errorMessage);
+                    if (!RECOGNIZING_STATUS.RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                        if (translator != null) translator.close();
+                    } else {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                    }
                 }
 
                 @Override
                 public void onResults(Bundle results) {
-                    /*Handler handler = new Handler(Looper.getMainLooper()) {
-                        @Override
-                        public void handleMessage(Message msg) {
-                            //setText(textview_debug, "onResults");
-                            if (!RECOGNIZING_STATUS.RECOGNIZING) {
-                                speechRecognizer.stopListening();
-                            } else {
-                                ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                                VOICE_TEXT.STRING = matches.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
-                                setText(MainActivity.voice_text, VOICE_TEXT.STRING);
-                                MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
-                                speechRecognizer.startListening(speechRecognizerIntent);
-                            }
-                        }
-                    };
-                    handler.sendEmptyMessage(1);*/
+                    //setText(MainActivity.textview_debug, "onResults");
+                    /*if (!RECOGNIZING_STATUS.RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                    } else {
+                        ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        VOICE_TEXT.STRING = matches.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
+                        setText(MainActivity.voice_text, VOICE_TEXT.STRING);
+                        MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                    }*/
                 }
 
                 @Override
                 public void onPartialResults(Bundle results) {
-                    Handler handler = new Handler(Looper.getMainLooper()) {
-                        @Override
-                        public void handleMessage(Message msg) {
-                            if (!RECOGNIZING_STATUS.RECOGNIZING) {
-                                speechRecognizer.stopListening();
-                                if (translator != null) translator.close();
-                            } else {
-                                ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                                if (PREFER_OFFLINE_STATUS.OFFLINE) {
-                                    ArrayList<String> unstableData = results.getStringArrayList("android.speech.extra.UNSTABLE_TEXT");
-                                    VOICE_TEXT.STRING = data.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC)) + unstableData.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
-                                } else {
-                                    StringBuilder text = new StringBuilder();
-                                    for (String result : data)
-                                        text.append(result);
-                                    VOICE_TEXT.STRING = text.toString().toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
-                                }
-                                MainActivity.voice_text.setText(VOICE_TEXT.STRING);
-                                MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
-                            }
+                    if (!RECOGNIZING_STATUS.RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                        if (translator != null) translator.close();
+                    } else {
+                        ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        if (PREFER_OFFLINE_STATUS.OFFLINE) {
+                            ArrayList<String> unstableData = results.getStringArrayList("android.speech.extra.UNSTABLE_TEXT");
+                            VOICE_TEXT.STRING = data.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC)) + unstableData.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
+                        } else {
+                            StringBuilder text = new StringBuilder();
+                            for (String result : data)
+                                text.append(result);
+                            VOICE_TEXT.STRING = text.toString().toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
                         }
-                    };
-                    handler.sendEmptyMessage(1);
+                        MainActivity.voice_text.setText(VOICE_TEXT.STRING);
+                        MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
+                    }
                 }
 
                 @Override
                 public void onEvent(int arg0, Bundle arg1) {
-                    //setText(textview_debug, "onEvent");
+                    //setText(MainActivity.textview_debug, "onEvent");
                 }
 
-                public String getErrorText(int errorCode) {
+                /*public String getErrorText(int errorCode) {
                     String message;
                     switch (errorCode) {
                         case SpeechRecognizer.ERROR_AUDIO:
@@ -231,7 +205,7 @@ public class VoiceRecognizer extends Service {
                             break;
                     }
                     return message;
-                }
+                }*/
             });
         }
 
@@ -244,7 +218,7 @@ public class VoiceRecognizer extends Service {
                         get_translation(VOICE_TEXT.STRING, LANGUAGE.SRC, LANGUAGE.DST);
                     }
                 }
-            },0,2000);
+            },0,3000);
         } else {
             speechRecognizer.stopListening();
             if (translator != null) translator.close();
@@ -261,28 +235,24 @@ public class VoiceRecognizer extends Service {
     }
 
     @SuppressLint("SetTextI18n")
-    private void get_translation(final String text, String textFrom, String textTo) {
+    private void get_translation(final String text, String src, String dst) {
         Handler handler = new Handler(Looper.getMainLooper()) {
             @Override
             public void handleMessage(Message msg) {
                 TranslatorOptions options = new TranslatorOptions.Builder()
-                        .setSourceLanguage(textFrom)
-                        .setTargetLanguage(textTo)
+                        .setSourceLanguage(src)
+                        .setTargetLanguage(dst)
                         .build();
-
                 translator = Translation.getClient(options);
-
                 if (!MLKIT_DICTIONARY.READY) {
                     DownloadConditions conditions = new DownloadConditions.Builder().build();
                     translator.downloadModelIfNeeded(conditions)
                             .addOnSuccessListener(unused -> MLKIT_DICTIONARY.READY = true)
                             .addOnFailureListener(e -> {});
-                }
-
-                if (MLKIT_DICTIONARY.READY) {
+                } else {
                     String downloaded_status_message = "Dictionary is ready";
                     MainActivity.textview_debug2.setText(downloaded_status_message);
-                    translator.translate(text).addOnSuccessListener(s -> {
+                    if (translator != null) translator.translate(text).addOnSuccessListener(s -> {
                         TRANSLATION_TEXT.STRING = s;
                         if (RECOGNIZING_STATUS.RECOGNIZING) {
                             if (TRANSLATION_TEXT.STRING.length() == 0) {
@@ -319,14 +289,14 @@ public class VoiceRecognizer extends Service {
         handler.sendEmptyMessage(1);
     }
 
-    private void toast(String message) {
+    /*private void toast(String message) {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
                 Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
-    }
+    }*/
 
     public void setText(final TextView tv, final String text){
         Handler handler = new Handler(Looper.getMainLooper()) {

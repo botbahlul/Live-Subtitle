@@ -35,6 +35,7 @@ public class create_overlay_translation_text extends Service {
 
     public void onCreate() {
         super.onCreate();
+        MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, MainActivity.mStreamVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         create_translation_text_window();
     }
 
@@ -69,7 +70,6 @@ public class create_overlay_translation_text extends Service {
                 overlay_translation_text_container.setVisibility(View.VISIBLE);
             }
         } else {
-            MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, MainActivity.mStreamVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             overlay_translation_text.setVisibility(View.INVISIBLE);
             overlay_translation_text_container.setVisibility(View.INVISIBLE);
         }
