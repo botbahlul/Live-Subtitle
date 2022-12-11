@@ -70,7 +70,7 @@ apktool b --use-aapt2 vlc_mod -o vlc_mod.apk
 
 For LOCAL VIDEOS on your STORAGE, you need ES MEDIA PLAYER (by installing ES FILE EXPLORER) or FX MEDIA PLAYER (by installing FX FILE MANAGER)
 
-
+Check my other version (in translation methode) of this app in https://github.com/botbahlul/Live-Subtitle-V2
 
 https://user-images.githubusercontent.com/88623122/193420307-288c6576-050f-451e-af26-45ee7687e53d.mp4
 
