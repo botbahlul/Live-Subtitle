@@ -10,7 +10,7 @@ CONS:
 It currently can only listen if you PLAY YOUTUBE STREAM (NOT ALL STREAMS!) via ANDROID VLC PLAYER
 
 
-UPDATE NOTES : IF YOUR VLC CANNOT PLAY DIRECT YOUTUBE LINK URL ANYMORE, YOU NEED TO UPDATE youtube.lua SCRIPT INSIDE VLC
+VLC UPDATE NOTES : IF YOUR VLC CANNOT PLAY DIRECT YOUTUBE LINK URL ANYMORE, YOU NEED TO UPDATE youtube.lua SCRIPT INSIDE VLC
 
 There are 2 ways to update youtube.lua script :
 
@@ -36,7 +36,7 @@ Use APKTOOL https://ibotpeaches.github.io/Apktool/install/ to modify VLC.APK and
 
 - you can get vlc.apk from here : https://download.videolan.org/pub/videolan/vlc-android/
 
-- open command promt cmd.exe and goto C:\APK
+- open Command Prompt (cmd.exe) and goto C:\APK
 
 - to decompress/decompile vlc.apk type :
 ```
