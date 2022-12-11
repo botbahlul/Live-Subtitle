@@ -74,5 +74,5 @@ Check my other version (in translation methode) of this app in https://github.co
 
 https://user-images.githubusercontent.com/88623122/193420307-288c6576-050f-451e-af26-45ee7687e53d.mp4
 
-Also check my other SPEECH RECOGNITIION + TRANSLATE PROJECTS in https://github.com/botbahlul/botbahlul.github.io
+Also check my other SPEECH RECOGNITIION + TRANSLATE PROJECTS in https://botbahlul.github.io
 
