@@ -52,6 +52,8 @@ apktool b vlc_mod -o vlc_mod.apk
 
 - open APK EDITOR STUDIO, click Tools -> Key Manager to create a sign key
 
+- in Keystroke Path input : C:/APK/MyKey.jks then click Create
+
 - Input those all necessary fields (passwords, key name alias,  your name & address, etc) then click OK, then close APK EDITOR STUDIO
 
 - Now you can sign that vlc_mod.apk by right click on it Windows Explorer and click Sign APK then install it on your android device
