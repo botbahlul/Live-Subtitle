@@ -32,7 +32,7 @@ Use APKTOOL https://ibotpeaches.github.io/Apktool/install/ to modify VLC.APK and
 
 - create a working folder in your drive to store apk file and its decompressed contents e.g. in C:\APK
 
-- place vlc.apk into C:\APK (PLEASE USE OLD VERSION OF VLC, DO NOT USE NEWER THAT 3.4.0, I RECOMMEND TO USE VERSION 3.2.6, BECAUSE NEWER VERSION WILL GIVE SLOW PERFORMANCE)
+- place vlc.apk into C:\APK (PLEASE USE OLD VERSION OF VLC, DO NOT USE NEWER THAT 3.4.4, I RECOMMEND TO USE VERSION 3.1.5, BECAUSE NEWER VERSION WILL GIVE SLOW PERFORMANCE)
 
 - you can get vlc.apk from here : https://download.videolan.org/pub/videolan/vlc-android/
 
