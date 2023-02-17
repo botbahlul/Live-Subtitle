@@ -36,8 +36,6 @@ public class create_overlay_mic_button extends Service {
             mGlobalOverlay_mic_button.removeOverlayView(mic_button);
         }
         if (IS_OVER_REMOVEVIEW.IS_OVER) {
-            stop_voice_recognizer();
-            stop_create_overlay_translation_text();
             RECOGNIZING_STATUS.RECOGNIZING = false;
             String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
             MainActivity.textview_recognizing.setText(string_recognizing);
@@ -59,6 +57,8 @@ public class create_overlay_mic_button extends Service {
             if (create_overlay_mic_button.mic_button != null) {
                 create_overlay_mic_button.mic_button.setVisibility(View.INVISIBLE);
             }
+            stop_voice_recognizer();
+            stop_create_overlay_translation_text();
         }
         MainActivity.textview_debug.setText("");
         VOICE_TEXT.STRING = "";
@@ -145,7 +145,12 @@ public class create_overlay_mic_button extends Service {
     }
 
     private void toast(String message) {
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
 }

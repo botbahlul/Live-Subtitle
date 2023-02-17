@@ -35,6 +35,11 @@
             android:enabled="true"
             android:exported="false"
             android:permission="TODO" />
+
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="langid,model2,model3" />
+
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboardHidden|screenSize|orientation|screenLayout|navigation"
@@ -44,9 +49,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <uses-library
-            android:name="org.apache.http.legacy"
-            android:required="false"/>
     </application>
     <queries>
         <intent>

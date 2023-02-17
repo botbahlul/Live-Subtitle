@@ -6,10 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.AudioManager;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.util.Objects;
 
@@ -32,10 +35,8 @@ public class create_overlay_translation_text extends Service {
 
     public void onCreate() {
         super.onCreate();
+        MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, MainActivity.mStreamVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
         create_translation_text_window();
-        /*if (TRANSLATION_TEXT.STRING.length() != 0) {
-            overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-        }*/
     }
 
     @Override
@@ -52,11 +53,11 @@ public class create_overlay_translation_text extends Service {
         LayoutInflater layoutInflater = (LayoutInflater) this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         overlay_translation_text_container = layoutInflater.inflate(R.layout.overlay_translation_text_container, null);
         overlay_translation_text_container.setMinimumWidth((int) (0.8* DISPLAY_METRIC.DISPLAY_WIDTH));
-        overlay_translation_text_container.setBackgroundColor(Color.parseColor("#00000000"));
+        overlay_translation_text_container.setBackgroundColor(Color.TRANSPARENT);
         overlay_translation_text_container.setVisibility(View.INVISIBLE);
         overlay_translation_text = overlay_translation_text_container.findViewById(R.id.overlay_translation_text);
         overlay_translation_text.setWidth(overlay_translation_text_container.getWidth());
-        overlay_translation_text.setBackgroundColor(Color.parseColor("#80000000"));
+        overlay_translation_text.setBackgroundColor(Color.TRANSPARENT);
         overlay_translation_text.setTextColor(Color.YELLOW);
         overlay_translation_text.setVisibility(View.INVISIBLE);
         if (RECOGNIZING_STATUS.RECOGNIZING) {
@@ -69,19 +70,14 @@ public class create_overlay_translation_text extends Service {
                 overlay_translation_text_container.setVisibility(View.VISIBLE);
             }
         } else {
-            MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, MainActivity.mStreamVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             overlay_translation_text.setVisibility(View.INVISIBLE);
             overlay_translation_text_container.setVisibility(View.INVISIBLE);
         }
         int h;
-        if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh-Hans") || Objects.equals(LANGUAGE.DST, "zh-Hant")) {
-            //h = 80;
-            //h = 124;
+        if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
             h = 75;
         }
         else {
-            //h = 64;
-            //h = 107;
             h = 62;
         }
         mGlobalOverlay_overlay_translation_text.addOverlayView(overlay_translation_text_container,
@@ -110,4 +106,14 @@ public class create_overlay_translation_text extends Service {
                     }
                 });
     }
+
+    private void toast(String message) {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
 }
