@@ -1,5 +1,5 @@
 # Live-Subtitle
-ANDROID APP that can RECOGNIZE LIVE AUDIO/VIDEO STREAMING (powered by free Android Developers Speech Recognition API) then TRANSLATE (powered by MLKIT TRANSLATE) and display them as SUBTITLES.
+ANDROID APP that can RECOGNIZE VLC LIVE AUDIO/VIDEO STREAMING (powered by free Android Developers Speech Recognition API) then TRANSLATE (powered by MLKIT TRANSLATE) and display them as SUBTITLES.
 
 This app has PROS & CONS compared to other Speech Recognition APIs like VOSK, IBM WATSON, and PREMIUM GOOGPLE SPEECH API
 
