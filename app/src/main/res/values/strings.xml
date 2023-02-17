@@ -3,8 +3,9 @@
     <string name="voice_language">Voice Language</string>
     <string name="spinner_src_languages">spinner_src_languages</string>
     <string name="translation_language">Translation Language</string>
-    <string name="spinner_dst_languages">spinner_src_languages</string>
+    <string name="spinner_dst_languages">spinner_dst_languages</string>
     <string name="toggle_overlay">Toggle Overlay\n(ON/OFF)</string>
     <string name="use_offline_mode">Use offline mode</string>
     <string name="recognized_words">Recognized words</string>
+    <string name="debug_mode">Debug mode</string>
 </resources>

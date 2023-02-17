@@ -6,7 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginLeft="5dp"
     android:layout_marginRight="5dp"
-    android:layout_gravity="center"
+    android:layout_gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="1dp"
     android:fillViewport="false"
@@ -20,123 +20,145 @@
         android:paddingBottom="1dp"
         tools:context=".MainActivity"
         >
-        <TextView
-            android:id="@+id/textview_text1"
-            android:textAlignment="gravity"
-            android:gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:text="@string/voice_language"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12sp"
             />
-        <Spinner
-            android:id="@+id/spinner_src_languages"
+        <CheckBox
+            android:id="@+id/checkbox_debug_mode"
+            android:text="@string/debug_mode"
+            android:minHeight="32dp"
+            android:padding="0dp"
+            android:gravity="start"
+            android:textAlignment="gravity"
+            android:textSize="16sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:contentDescription="@string/spinner_src_languages"
-            android:backgroundTint="@color/colorPrimary"
-            android:gravity="center"
-            android:minHeight="48dp"
-            android:spinnerMode="dropdown"
-            android:textAlignment="gravity"
-            />
-        <TextView
-            android:id="@+id/textview_src_dialect"
-            android:textAlignment="gravity"
-            android:gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
-            />
-        <TextView
-            android:id="@+id/textview_src"
-            android:textAlignment="gravity"
-            android:gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="14sp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="0dp"
+            android:checked="false"
             />
         <View
             android:layout_width="match_parent"
             android:layout_height="12sp"
             />
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
+        <TableRow>
+            <TextView
+                android:id="@+id/textview_text1"
+                android:text="@string/voice_language"
+                android:gravity="start"
+                android:textSize="16sp"
+                android:textAlignment="gravity"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                />
+
+            <Spinner
+                android:id="@+id/spinner_src_languages"
+                android:contentDescription="@string/spinner_src_languages"
+                android:spinnerMode="dropdown"
+                android:backgroundTint="@color/colorPrimary"
+                android:gravity="start"
+                android:textAlignment="gravity"
+                android:minHeight="40dp"
+                android:layout_marginStart="12dp"
+                android:layout_width="228dp"
+                android:layout_height="wrap_content"
+                />
+        </TableRow>
+        <TextView
+            android:id="@+id/textview_src_dialect"
+            android:textSize="14sp"
             android:gravity="center"
-            android:orientation="horizontal"
-            >
-        <CheckBox
-            android:id="@+id/checkbox_offline_mode"
+            android:textAlignment="gravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:textSize="16sp"
-            android:text="@string/use_offline_mode"
             />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/textview_src"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:textAlignment="gravity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12sp"
+            />
+        <CheckBox
+            android:id="@+id/checkbox_offline_mode"
+            android:text="@string/use_offline_mode"
+            android:gravity="start"
+            android:layout_gravity="start"
+            android:textSize="16sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
         <View
             android:layout_width="match_parent"
             android:layout_height="12sp"
             />
         <EditText
             android:id="@+id/voice_text"
-            android:layout_width="match_parent"
-            android:layout_height="102dp"
-            android:autofillHints=""
-            android:gravity="center"
-            android:focusable="false"
-            android:focusableInTouchMode="true"
             android:hint="@string/recognized_words"
-            android:maxLines="3"
-            android:textSize="18sp"
+            android:gravity="start"
             android:textAlignment="gravity"
             android:textColorHint="#616161"
+            android:textSize="16sp"
+            android:autofillHints=""
+            android:focusable="false"
+            android:focusableInTouchMode="true"
+            android:maxLines="3"
+            android:layout_width="match_parent"
+            android:layout_height="102dp"
             tools:ignore="LabelFor,TextFields"
             />
         <View
             android:layout_width="match_parent"
             android:layout_height="12sp"
             />
-        <TextView
-            android:id="@+id/textview_text2"
-            android:textAlignment="gravity"
-            android:gravity="center"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:text="@string/translation_language"
-            />
-        <Spinner
-            android:id="@+id/spinner_dst_languages"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="48dp"
-            android:contentDescription="@string/voice_language"
-            android:backgroundTint="@color/colorPrimary"
-            android:gravity="center"
-            android:minHeight="48dp"
-            android:spinnerMode="dropdown"
-            android:textAlignment="gravity"
-            />
+        <TableRow>
+            <TextView
+                android:id="@+id/textview_text2"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:gravity="start"
+                android:text="@string/translation_language"
+                android:textAlignment="gravity"
+                android:textSize="16sp"
+                />
+
+            <Spinner
+                android:id="@+id/spinner_dst_languages"
+                android:contentDescription="@string/spinner_dst_languages"
+                android:spinnerMode="dropdown"
+                android:backgroundTint="@color/colorPrimary"
+                android:gravity="start"
+                android:textAlignment="gravity"
+                android:minHeight="40dp"
+                android:layout_marginStart="12dp"
+                android:layout_width="228dp"
+                android:layout_height="wrap_content"
+                />
+        </TableRow>
         <TextView
             android:id="@+id/textview_dst_dialect"
-            android:textAlignment="gravity"
+            android:textSize="14sp"
             android:gravity="center"
+            android:textAlignment="gravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
             />
         <TextView
             android:id="@+id/textview_dst"
-            android:textAlignment="gravity"
+            android:textSize="14sp"
             android:gravity="center"
+            android:textAlignment="gravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
             />
         <View
             android:layout_width="match_parent"
@@ -149,6 +171,7 @@
             android:layout_height="wrap_content"
             android:layout_width="wrap_content"
             android:text="@string/toggle_overlay"
+            android:textSize="14sp"
             />
         <View
             android:layout_width="match_parent"
@@ -156,40 +179,35 @@
             />
         <TextView
             android:id="@+id/textview_recognizing"
-            android:textAlignment="gravity"
+            android:textSize="14sp"
             android:gravity="center"
+            android:textAlignment="gravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textSize="14sp"
             />
         <TextView
             android:id="@+id/textview_overlaying"
-            android:textAlignment="gravity"
+            android:textSize="14sp"
             android:gravity="center"
+            android:textAlignment="gravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="14sp"
             />
         <TextView
             android:id="@+id/textview_debug"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:textAlignment="gravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="gravity"
-            android:gravity="center"
-            android:textSize="14sp"
-            />
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="12sp"
             />
         <TextView
             android:id="@+id/textview_debug2"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:textAlignment="gravity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="gravity"
-            android:gravity="center"
-            android:textSize="14sp"
             />
     </TableLayout>
 </ScrollView>

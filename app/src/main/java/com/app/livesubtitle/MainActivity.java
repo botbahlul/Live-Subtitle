@@ -24,6 +24,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -47,6 +48,8 @@ public class MainActivity extends AppCompatActivity {
     private static final Integer RecordAudioRequestCode = 1;
     private DisplayMetrics display;
 
+    @SuppressLint("StaticFieldLeak")
+    public static CheckBox checkbox_debug_mode;
     private TextView textview_src_dialect;
     @SuppressLint("StaticFieldLeak")
     public static TextView textview_src;
@@ -98,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
         setVolumeControlStream(AudioManager.MODE_IN_COMMUNICATION);
         AudioManager am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         am.setSpeakerphoneOn(true);
+        checkbox_debug_mode = findViewById(R.id.checkbox_debug_mode);
         spinner_src_languages = findViewById(R.id.spinner_src_languages);
         checkbox_offline_mode = findViewById(R.id.checkbox_offline_mode);
         spinner_dst_languages = findViewById(R.id.spinner_dst_languages);
@@ -143,6 +147,113 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS);
             startActivity(intent);
         }
+
+        if(checkbox_debug_mode.isChecked()){
+            textview_src_dialect.setVisibility(View.VISIBLE);
+            textview_src.setVisibility(View.VISIBLE);
+            textview_dst_dialect.setVisibility(View.VISIBLE);
+            textview_dst.setVisibility(View.VISIBLE);
+            textview_recognizing.setVisibility(View.VISIBLE);
+            textview_overlaying.setVisibility(View.VISIBLE);
+            textview_debug.setVisibility(View.VISIBLE);
+            textview_debug2.setVisibility(View.VISIBLE);
+            if (LANGUAGE.SRC_DIALECT != null) {
+                String lsd = "LANGUAGE.SRC_DIALECT = " + LANGUAGE.SRC_DIALECT;
+                textview_src_dialect.setText(lsd);
+            }
+            else {
+                textview_src_dialect.setHint("LANGUAGE.SRC_DIALECT");
+            }
+
+            if (LANGUAGE.SRC != null) {
+                String ls  = "LANGUAGE.SRC = " + LANGUAGE.SRC;
+                textview_src.setText(ls);
+            }
+            else {
+                textview_src.setHint("LANGUAGE.SRC");
+            }
+
+            if (LANGUAGE.DST_DIALECT != null) {
+                String ldd = "LANGUAGE.DST_DIALECT = " + LANGUAGE.DST_DIALECT;
+                textview_dst_dialect.setText(ldd);
+            }
+            else {
+                textview_dst_dialect.setHint("LANGUAGE.DST_DIALECT");
+            }
+
+            if (LANGUAGE.DST != null) {
+                String ld = "LANGUAGE.DST = " + LANGUAGE.DST;
+                textview_dst.setText(ld);
+            }
+            else {
+                textview_src.setHint("LANGUAGE.SRC");
+            }
+        }
+
+        else {
+            textview_src_dialect.setVisibility(View.GONE);
+            textview_src.setVisibility(View.GONE);
+            textview_dst_dialect.setVisibility(View.GONE);
+            textview_dst.setVisibility(View.GONE);
+            textview_recognizing.setVisibility(View.GONE);
+            textview_overlaying.setVisibility(View.GONE);
+            textview_debug.setVisibility(View.GONE);
+            textview_debug2.setVisibility(View.GONE);
+        }
+
+        checkbox_debug_mode.setOnClickListener(view -> {
+            if(((CompoundButton) view).isChecked()){
+                textview_src_dialect.setVisibility(View.VISIBLE);
+                textview_src.setVisibility(View.VISIBLE);
+                textview_dst_dialect.setVisibility(View.VISIBLE);
+                textview_dst.setVisibility(View.VISIBLE);
+                textview_recognizing.setVisibility(View.VISIBLE);
+                textview_overlaying.setVisibility(View.VISIBLE);
+                textview_debug.setVisibility(View.VISIBLE);
+                textview_debug2.setVisibility(View.VISIBLE);
+                if (LANGUAGE.SRC_DIALECT != null) {
+                    String lsd = "LANGUAGE.SRC_DIALECT = " + LANGUAGE.SRC_DIALECT;
+                    textview_src_dialect.setText(lsd);
+                }
+                else {
+                    textview_src_dialect.setHint("LANGUAGE.SRC_DIALECT");
+                }
+
+                if (LANGUAGE.SRC != null) {
+                    String ls = "LANGUAGE.SRC = " + LANGUAGE.SRC;
+                    textview_src.setText(ls);
+                }
+                else {
+                    textview_src.setHint("LANGUAGE.SRC");
+                }
+
+                if (LANGUAGE.DST_DIALECT != null) {
+                    String ldd = "LANGUAGE.DST_DIALECT = " + LANGUAGE.DST_DIALECT;
+                    textview_dst_dialect.setText(ldd);
+                }
+                else {
+                    textview_dst_dialect.setHint("LANGUAGE.DST_DIALECT");
+                }
+
+                if (LANGUAGE.DST != null) {
+                    String ld = "LANGUAGE.DST = " + LANGUAGE.DST;
+                    textview_dst.setText(ld);
+                }
+                else {
+                    textview_src.setHint("LANGUAGE.SRC");
+                }
+            }
+            else {
+                textview_src_dialect.setVisibility(View.GONE);
+                textview_src.setVisibility(View.GONE);
+                textview_dst_dialect.setVisibility(View.GONE);
+                textview_dst.setVisibility(View.GONE);
+                textview_recognizing.setVisibility(View.GONE);
+                textview_overlaying.setVisibility(View.GONE);
+                textview_debug.setVisibility(View.GONE);
+                textview_debug2.setVisibility(View.GONE);
+            }
+        });
 
         final Intent ri = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
         PackageManager pm = getPackageManager();
@@ -548,23 +659,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void toast(String message) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
     }
 
     public void setText(final TextView tv, final String text){
-        Handler handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
+        new Handler(Looper.getMainLooper()).post(() -> {
                 // Any UI task, example
                 tv.setText(text);
-            }
-        };
-        handler.sendEmptyMessage(1);
+        });
     }
 
 }

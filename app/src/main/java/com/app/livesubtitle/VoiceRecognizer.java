@@ -26,10 +26,13 @@ import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class VoiceRecognizer extends Service {
 
@@ -84,17 +87,18 @@ public class VoiceRecognizer extends Service {
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, src_dialect);
             //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,3600000);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "com.google.android.googlequicksearchbox");
             //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
             speechRecognizer.setRecognitionListener(new RecognitionListener() {
                 @Override
                 public void onReadyForSpeech(Bundle arg0) {
-                    //setText(MainActivity.textview_debug, "onReadyForSpeech");
+                    setText(MainActivity.textview_debug, "onReadyForSpeech");
                 }
 
                 @Override
                 public void onBeginningOfSpeech() {
-                    //setText(MainActivity.textview_debug, "onBeginningOfSpeech");
+                    setText(MainActivity.textview_debug, "onBeginningOfSpeech");
                 }
 
                 @Override
@@ -104,12 +108,12 @@ public class VoiceRecognizer extends Service {
 
                 @Override
                 public void onBufferReceived(byte[] buffer) {
-                    //setText(MainActivity.textview_debug, "onBufferReceived: " + buffer);
+                    setText(MainActivity.textview_debug, "onBufferReceived: " + Arrays.toString(buffer));
                 }
 
                 @Override
                 public void onEndOfSpeech() {
-                    //setText(MainActivity.textview_debug, "onEndOfSpeech");
+                    setText(MainActivity.textview_debug, "onEndOfSpeech");
                     if (!RECOGNIZING_STATUS.RECOGNIZING) {
                         speechRecognizer.stopListening();
                         if (translator != null) translator.close();
@@ -120,8 +124,8 @@ public class VoiceRecognizer extends Service {
 
                 @Override
                 public void onError(int errorCode) {
-                    //String errorMessage = getErrorText(errorCode);
-                    //setText(MainActivity.textview_debug, "FAILED " + errorMessage);
+                    String errorMessage = getErrorText(errorCode);
+                    setText(MainActivity.textview_debug, "FAILED : " + errorMessage);
                     if (!RECOGNIZING_STATUS.RECOGNIZING) {
                         speechRecognizer.stopListening();
                         if (translator != null) translator.close();
@@ -170,7 +174,7 @@ public class VoiceRecognizer extends Service {
                     //setText(MainActivity.textview_debug, "onEvent");
                 }
 
-                /*public String getErrorText(int errorCode) {
+                public String getErrorText(int errorCode) {
                     String message;
                     switch (errorCode) {
                         case SpeechRecognizer.ERROR_AUDIO:
@@ -205,7 +209,7 @@ public class VoiceRecognizer extends Service {
                             break;
                     }
                     return message;
-                }*/
+                }
             });
         }
 
@@ -236,9 +240,9 @@ public class VoiceRecognizer extends Service {
 
     @SuppressLint("SetTextI18n")
     private void get_translation(final String text, String src, String dst) {
-        Handler handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        if (RECOGNIZING_STATUS.RECOGNIZING && text != null) {
+            executor.execute(() -> {
                 TranslatorOptions options = new TranslatorOptions.Builder()
                         .setSourceLanguage(src)
                         .setTargetLanguage(dst)
@@ -249,64 +253,58 @@ public class VoiceRecognizer extends Service {
                     translator.downloadModelIfNeeded(conditions)
                             .addOnSuccessListener(unused -> MLKIT_DICTIONARY.READY = true)
                             .addOnFailureListener(e -> {});
-                } else {
-                    String downloaded_status_message = "Dictionary is ready";
-                    MainActivity.textview_debug2.setText(downloaded_status_message);
-                    if (translator != null) translator.translate(text).addOnSuccessListener(s -> {
-                        TRANSLATION_TEXT.STRING = s;
-                        if (RECOGNIZING_STATUS.RECOGNIZING) {
-                            if (TRANSLATION_TEXT.STRING.length() == 0) {
-                                create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                                create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
-                            } else {
-                                create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.VISIBLE);
-                                create_overlay_translation_text.overlay_translation_text_container.setBackgroundColor(Color.TRANSPARENT);
-                                create_overlay_translation_text.overlay_translation_text.setVisibility(View.VISIBLE);
-                                create_overlay_translation_text.overlay_translation_text.setBackgroundColor(Color.TRANSPARENT);
-                                create_overlay_translation_text.overlay_translation_text.setTextIsSelectable(true);
-                                create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-                                create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
-                                Spannable spannableString = new SpannableStringBuilder(TRANSLATION_TEXT.STRING);
-                                spannableString.setSpan(new ForegroundColorSpan(Color.YELLOW),
-                                        0,
-                                        create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
-                                        0);
-                                spannableString.setSpan(new BackgroundColorSpan(Color.parseColor("#80000000")),
-                                        0,
-                                        create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
-                                        0);
-                                create_overlay_translation_text.overlay_translation_text.setText(spannableString);
-                                create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
-                            }
-                        } else {
-                            create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                            create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
-                        }
-                    }).addOnFailureListener(e -> {});
                 }
-            }
-        };
-        handler.sendEmptyMessage(1);
+                else {
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        String downloaded_status_message = "Dictionary is ready";
+                        MainActivity.textview_debug2.setText(downloaded_status_message);
+                        if (translator != null)
+                            translator.translate(text).addOnSuccessListener(s -> {
+                                TRANSLATION_TEXT.STRING = s.toLowerCase(Locale.forLanguageTag(LANGUAGE.DST));
+                                if (RECOGNIZING_STATUS.RECOGNIZING) {
+                                    if (TRANSLATION_TEXT.STRING.length() == 0) {
+                                        create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
+                                        create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                                    } else {
+                                        create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.VISIBLE);
+                                        create_overlay_translation_text.overlay_translation_text_container.setBackgroundColor(Color.TRANSPARENT);
+                                        create_overlay_translation_text.overlay_translation_text.setVisibility(View.VISIBLE);
+                                        create_overlay_translation_text.overlay_translation_text.setBackgroundColor(Color.TRANSPARENT);
+                                        create_overlay_translation_text.overlay_translation_text.setTextIsSelectable(true);
+                                        create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
+                                        create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
+                                        Spannable spannableString = new SpannableStringBuilder(TRANSLATION_TEXT.STRING);
+                                        spannableString.setSpan(new ForegroundColorSpan(Color.YELLOW),
+                                                0,
+                                                create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
+                                                0);
+                                        spannableString.setSpan(new BackgroundColorSpan(Color.parseColor("#80000000")),
+                                                0,
+                                                create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
+                                                0);
+                                        create_overlay_translation_text.overlay_translation_text.setText(spannableString);
+                                        create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
+                                    }
+                                } else {
+                                    create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
+                                    create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                                }
+                            }).addOnFailureListener(e -> {});
+                    });
+                }
+            });
+        }
     }
 
     /*private void toast(String message) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
     }*/
 
     public void setText(final TextView tv, final String text){
-        Handler handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
+        new Handler(Looper.getMainLooper()).post(() -> {
                 // Any UI task, example
                 tv.setText(text);
-            }
-        };
-        handler.sendEmptyMessage(1);
+        });
     }
 
 }
