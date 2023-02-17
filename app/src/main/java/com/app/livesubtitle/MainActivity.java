@@ -11,10 +11,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.util.DisplayMetrics;
@@ -24,6 +22,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -34,7 +33,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,7 +44,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final Integer RecordAudioRequestCode = 1;
     private DisplayMetrics display;
-
+    @SuppressLint("StaticFieldLeak")
+    public static CheckBox checkbox_debug_mode;
     private TextView textview_src_dialect;
     @SuppressLint("StaticFieldLeak")
     public static TextView textview_src;
@@ -75,20 +74,11 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("StaticFieldLeak")
     public static TextView textview_debug2;
 
-    private String string_en_src_folder;
-    private String string_en_dst_folder;
-    private String string_src_en_folder;
-    private String string_dst_en_folder;
-    private File file_en_src_folder;
-    private File file_en_dst_folder;
-    private File file_src_en_folder;
-    private File file_dst_en_folder;
-    private String mlkit_status_message = "";
-
     //DON'T FORGET TO MODIFY AndroidManifest.xml
     //         <activity
     //            android:name=".MainActivity"
     //            android:configChanges="keyboardHidden|screenSize|orientation|screenLayout|navigation"
+
 
     @SuppressLint({"ClickableViewAccessibility", "QueryPermissionsNeeded", "SetTextI18n"})
     @Override
@@ -98,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
         setVolumeControlStream(AudioManager.MODE_IN_COMMUNICATION);
         AudioManager am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
         am.setSpeakerphoneOn(true);
+        checkbox_debug_mode = findViewById(R.id.checkbox_debug_mode);
         spinner_src_languages = findViewById(R.id.spinner_src_languages);
         checkbox_offline_mode = findViewById(R.id.checkbox_offline_mode);
         spinner_dst_languages = findViewById(R.id.spinner_dst_languages);
@@ -144,12 +135,118 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
 
+        if(checkbox_debug_mode.isChecked()){
+            textview_src_dialect.setVisibility(View.VISIBLE);
+            textview_src.setVisibility(View.VISIBLE);
+            textview_dst_dialect.setVisibility(View.VISIBLE);
+            textview_dst.setVisibility(View.VISIBLE);
+            textview_recognizing.setVisibility(View.VISIBLE);
+            textview_overlaying.setVisibility(View.VISIBLE);
+            textview_debug.setVisibility(View.VISIBLE);
+            textview_debug2.setVisibility(View.VISIBLE);
+            if (LANGUAGE.SRC_DIALECT != null) {
+                String lsd = "LANGUAGE.SRC_DIALECT = " + LANGUAGE.SRC_DIALECT;
+                textview_src_dialect.setText(lsd);
+            }
+            else {
+                textview_src_dialect.setHint("LANGUAGE.SRC_DIALECT");
+            }
+
+            if (LANGUAGE.SRC != null) {
+                String ls  = "LANGUAGE.SRC = " + LANGUAGE.SRC;
+                textview_src.setText(ls);
+            }
+            else {
+                textview_src.setHint("LANGUAGE.SRC");
+            }
+
+            if (LANGUAGE.DST_DIALECT != null) {
+                String ldd = "LANGUAGE.DST_DIALECT = " + LANGUAGE.DST_DIALECT;
+                textview_dst_dialect.setText(ldd);
+            }
+            else {
+                textview_dst_dialect.setHint("LANGUAGE.DST_DIALECT");
+            }
+
+            if (LANGUAGE.DST != null) {
+                String ld = "LANGUAGE.DST = " + LANGUAGE.DST;
+                textview_dst.setText(ld);
+            }
+            else {
+                textview_src.setHint("LANGUAGE.SRC");
+            }
+        }
+
+        else {
+            textview_src_dialect.setVisibility(View.GONE);
+            textview_src.setVisibility(View.GONE);
+            textview_dst_dialect.setVisibility(View.GONE);
+            textview_dst.setVisibility(View.GONE);
+            textview_recognizing.setVisibility(View.GONE);
+            textview_overlaying.setVisibility(View.GONE);
+            textview_debug.setVisibility(View.GONE);
+            textview_debug2.setVisibility(View.GONE);
+        }
+
+        checkbox_debug_mode.setOnClickListener(view -> {
+            if(((CompoundButton) view).isChecked()){
+                textview_src_dialect.setVisibility(View.VISIBLE);
+                textview_src.setVisibility(View.VISIBLE);
+                textview_dst_dialect.setVisibility(View.VISIBLE);
+                textview_dst.setVisibility(View.VISIBLE);
+                textview_recognizing.setVisibility(View.VISIBLE);
+                textview_overlaying.setVisibility(View.VISIBLE);
+                textview_debug.setVisibility(View.VISIBLE);
+                textview_debug2.setVisibility(View.VISIBLE);
+                if (LANGUAGE.SRC_DIALECT != null) {
+                    String lsd = "LANGUAGE.SRC_DIALECT = " + LANGUAGE.SRC_DIALECT;
+                    textview_src_dialect.setText(lsd);
+                }
+                else {
+                    textview_src_dialect.setHint("LANGUAGE.SRC_DIALECT");
+                }
+
+                if (LANGUAGE.SRC != null) {
+                    String ls = "LANGUAGE.SRC = " + LANGUAGE.SRC;
+                    textview_src.setText(ls);
+                }
+                else {
+                    textview_src.setHint("LANGUAGE.SRC");
+                }
+
+                if (LANGUAGE.DST_DIALECT != null) {
+                    String ldd = "LANGUAGE.DST_DIALECT = " + LANGUAGE.DST_DIALECT;
+                    textview_dst_dialect.setText(ldd);
+                }
+                else {
+                    textview_dst_dialect.setHint("LANGUAGE.DST_DIALECT");
+                }
+
+                if (LANGUAGE.DST != null) {
+                    String ld = "LANGUAGE.DST = " + LANGUAGE.DST;
+                    textview_dst.setText(ld);
+                }
+                else {
+                    textview_src.setHint("LANGUAGE.SRC");
+                }
+            }
+            else {
+                textview_src_dialect.setVisibility(View.GONE);
+                textview_src.setVisibility(View.GONE);
+                textview_dst_dialect.setVisibility(View.GONE);
+                textview_dst.setVisibility(View.GONE);
+                textview_recognizing.setVisibility(View.GONE);
+                textview_overlaying.setVisibility(View.GONE);
+                textview_debug.setVisibility(View.GONE);
+                textview_debug2.setVisibility(View.GONE);
+            }
+        });
+
         final Intent ri = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
         PackageManager pm = getPackageManager();
         boolean isInstalled = isPackageInstalled("com.google.android.googlequicksearchbox", pm);
         if (!isInstalled) Toast.makeText(this,"Please install Googple app (com.google.android.googlequicksearchbox)",Toast.LENGTH_SHORT).show();
         if (isInstalled) ri.setPackage("com.google.android.googlequicksearchbox");
-
         this.sendOrderedBroadcast(ri,null,new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
@@ -182,24 +279,22 @@ public class MainActivity extends AppCompatActivity {
 
         spinner_src_languages.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                stop_voice_recognizer();
-                if (RECOGNIZING_STATUS.RECOGNIZING) {
-                    start_voice_recognizer();
-                }
-                stop_create_overlay_translation_text();
-                if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_translation_text();
-
-                stop_create_overlay_mic_button();
-                if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_mic_button();
-
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
+
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
                 setText(textview_src, LANGUAGE.SRC);
 
@@ -207,25 +302,23 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
+
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
                 setText(textview_dst, LANGUAGE.DST);
 
-                string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
-                string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
-                string_src_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + "en" ;
-                string_dst_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_dst.getText() + "_" + "en" ;
-                file_en_src_folder = new File(string_en_src_folder);
-                file_en_dst_folder = new File(string_en_dst_folder);
-                file_src_en_folder = new File(string_src_en_folder);
-                file_dst_en_folder = new File(string_dst_en_folder);
-                check_mlkit_dictionary();
-
                 int h;
-                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
+                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh-Hans") || Objects.equals(LANGUAGE.DST, "zh-Hant")) {
                     h = 75;
                 }
                 else {
@@ -260,8 +353,15 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -271,8 +371,15 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
@@ -282,22 +389,19 @@ public class MainActivity extends AppCompatActivity {
 
         spinner_dst_languages.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                stop_voice_recognizer();
-                if (RECOGNIZING_STATUS.RECOGNIZING) {
-                    start_voice_recognizer();
-                }
-                stop_create_overlay_translation_text();
-                if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_translation_text();
-
-                stop_create_overlay_mic_button();
-                if (OVERLAYING_STATUS.OVERLAYING) start_create_overlay_mic_button();
-
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -307,25 +411,22 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
                 setText(textview_dst, LANGUAGE.DST);
 
-                string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
-                string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
-                string_src_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + "en" ;
-                string_dst_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_dst.getText() + "_" + "en" ;
-                file_en_src_folder = new File(string_en_src_folder);
-                file_en_dst_folder = new File(string_en_dst_folder);
-                file_src_en_folder = new File(string_src_en_folder);
-                file_dst_en_folder = new File(string_dst_en_folder);
-                check_mlkit_dictionary();
-
                 int h;
-                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
+                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh-Hans") || Objects.equals(LANGUAGE.DST, "zh-Hant")) {
                     h = 75;
                 }
                 else {
@@ -348,7 +449,6 @@ public class MainActivity extends AppCompatActivity {
 
                     start_create_overlay_translation_text();
                 }
-
                 String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
                 setText(textview_recognizing, string_recognizing);
                 String string_overlaying =  "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
@@ -356,13 +456,19 @@ public class MainActivity extends AppCompatActivity {
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
-
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -372,8 +478,15 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
@@ -381,55 +494,52 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        button_toggle_overlay.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent e) {
-                if (e.getAction() == MotionEvent.ACTION_DOWN) {
-                    OVERLAYING_STATUS.OVERLAYING = !OVERLAYING_STATUS.OVERLAYING;
-                    String string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                    setText(textview_overlaying, string_overlaying);
-                    checkDrawOverlayPermission();
-                    if (OVERLAYING_STATUS.OVERLAYING) {
-                        start_create_overlay_mic_button();
-                        start_create_overlay_translation_text();
-                    } else {
-                        stop_voice_recognizer();
-                        stop_create_overlay_translation_text();
-                        stop_create_overlay_mic_button();
-                        RECOGNIZING_STATUS.RECOGNIZING = false;
-                        String string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
-                        setText(textview_recognizing, string_recognizing);
-                        string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                        setText(textview_overlaying, string_overlaying);
-                        setText(textview_debug, "");
-                        VOICE_TEXT.STRING = "";
-                        TRANSLATION_TEXT.STRING = "";
-                        setText(voice_text, "");
-                        String hints = "Recognized words";
-                        voice_text.setHint(hints);
-                        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, (int)Double.parseDouble(String.valueOf((long)(audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION) / 2))), 0);
-                        if (create_overlay_translation_text.overlay_translation_text != null) {
-                            setText(create_overlay_translation_text.overlay_translation_text, "");
-                            create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                            create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
-                        }
-                        if (create_overlay_mic_button.mic_button != null) {
-                            create_overlay_mic_button.mic_button.setVisibility(View.INVISIBLE);
-                        }
-                        setText(textview_debug, "");
-                        VOICE_TEXT.STRING = "";
-                        TRANSLATION_TEXT.STRING = "";
-                        setText(voice_text, "");
-                        string_recognizing = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
-                        setText(textview_recognizing, string_recognizing);
-                        string_overlaying = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
-                        setText(textview_overlaying, string_overlaying);
-                        hints = "Recognized words";
-                        voice_text.setHint(hints);
+        button_toggle_overlay.setOnTouchListener((v, e) -> {
+            if (e.getAction() == MotionEvent.ACTION_DOWN) {
+                OVERLAYING_STATUS.OVERLAYING = !OVERLAYING_STATUS.OVERLAYING;
+                String string_overlaying1 = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                setText(textview_overlaying, string_overlaying1);
+                checkDrawOverlayPermission();
+                if (OVERLAYING_STATUS.OVERLAYING) {
+                    start_create_overlay_mic_button();
+                    start_create_overlay_translation_text();
+                } else {
+                    stop_voice_recognizer();
+                    stop_create_overlay_translation_text();
+                    stop_create_overlay_mic_button();
+                    RECOGNIZING_STATUS.RECOGNIZING = false;
+                    String string_recognizing1 = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+                    setText(textview_recognizing, string_recognizing1);
+                    string_overlaying1 = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                    setText(textview_overlaying, string_overlaying1);
+                    setText(textview_debug, "");
+                    VOICE_TEXT.STRING = "";
+                    TRANSLATION_TEXT.STRING = "";
+                    setText(voice_text, "");
+                    String hints = "Recognized words";
+                    voice_text.setHint(hints);
+                    audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, (int)Double.parseDouble(String.valueOf((long)(audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION) / 2))), 0);
+                    if (create_overlay_translation_text.overlay_translation_text != null) {
+                        setText(create_overlay_translation_text.overlay_translation_text, "");
+                        create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
+                        create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
                     }
+                    if (create_overlay_mic_button.mic_button != null) {
+                        create_overlay_mic_button.mic_button.setVisibility(View.INVISIBLE);
+                    }
+                    setText(textview_debug, "");
+                    VOICE_TEXT.STRING = "";
+                    TRANSLATION_TEXT.STRING = "";
+                    setText(voice_text, "");
+                    string_recognizing1 = "recognizing=" + RECOGNIZING_STATUS.RECOGNIZING;
+                    setText(textview_recognizing, string_recognizing1);
+                    string_overlaying1 = "overlaying=" + OVERLAYING_STATUS.OVERLAYING;
+                    setText(textview_overlaying, string_overlaying1);
+                    hints = "Recognized words";
+                    voice_text.setHint(hints);
                 }
-                return false;
             }
+            return false;
         });
     }
 
@@ -438,7 +548,8 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
     }
 
-    public void setup_spinner(ArrayList<String> supported_languages) {
+    public void setup_spinner(ArrayList<String> supported_languages)
+    {
         countries_dialects = new HashMap<>();
         for (int i=0;i<supported_languages.size();i++) {
             countries_dialects.put(supported_languages.get(i), dialects[i]);
@@ -503,68 +614,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void check_mlkit_dictionary() {
-        if (Objects.equals(textview_src.getText(), textview_dst.getText())) {
-            MLKIT_DICTIONARY.READY = true;
-            mlkit_status_message = "";
-        }
-        if (Objects.equals(textview_src.getText(), "en")) {
-            if (file_en_dst_folder.exists() || file_dst_en_folder.exists()) {
-                MLKIT_DICTIONARY.READY = true;
-                mlkit_status_message = "Dictionary is ready";
-            } else {
-                MLKIT_DICTIONARY.READY = false;
-                mlkit_status_message = "Dictionary is not ready";
-            }
-        }
-        if (Objects.equals(textview_dst.getText(), "en")) {
-            if (file_en_src_folder.exists() || file_src_en_folder.exists()) {
-                MLKIT_DICTIONARY.READY = true;
-                mlkit_status_message = "Dictionary is ready";
-            } else {
-                MLKIT_DICTIONARY.READY = false;
-                mlkit_status_message = "Dictionary is not ready";
-            }
-        }
-        if (!(Objects.equals(textview_src.getText(), "en")) && !(Objects.equals(textview_dst.getText(), "en"))) {
-            if ((file_en_src_folder.exists() || file_src_en_folder.exists()) && (file_en_dst_folder.exists()) || file_dst_en_folder.exists()) {
-                MLKIT_DICTIONARY.READY = true;
-                mlkit_status_message = "Dictionary is ready";
-            }
-            else if ((file_en_src_folder.exists() || file_src_en_folder.exists()) && !file_dst_en_folder.exists() && !file_en_dst_folder.exists()) {
-                MLKIT_DICTIONARY.READY = false;
-                mlkit_status_message = "Dictionary is not ready";
-            }
-            else if ((file_en_dst_folder.exists() || file_dst_en_folder.exists()) && !file_src_en_folder.exists() && !file_en_src_folder.exists()) {
-                MLKIT_DICTIONARY.READY = false;
-                mlkit_status_message = "Dictionary is not ready";
-            }
-            else if (!file_en_src_folder.exists() && !file_en_dst_folder.exists() && !file_src_en_folder.exists() && !file_dst_en_folder.exists()) {
-                MLKIT_DICTIONARY.READY = false;
-                mlkit_status_message = "Dictionary is not ready";
-            }
-        }
-        setText(textview_debug2, mlkit_status_message);
-    }
-
-    private void toast(String message) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     public void setText(final TextView tv, final String text){
-        Handler handler = new Handler(Looper.getMainLooper()) {
-            @Override
-            public void handleMessage(Message msg) {
-                // Any UI task, example
-                tv.setText(text);
-            }
-        };
-        handler.sendEmptyMessage(1);
+        new Handler(Looper.getMainLooper()).post(() -> tv.setText(text));
     }
 
 }
