@@ -60,7 +60,7 @@ public class create_overlay_translation_text extends Service {
         overlay_translation_text.setBackgroundColor(Color.TRANSPARENT);
         overlay_translation_text.setTextColor(Color.YELLOW);
         overlay_translation_text.setVisibility(View.INVISIBLE);
-        if (RECOGNIZING_STATUS.RECOGNIZING) {
+        if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
             MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
             if (TRANSLATION_TEXT.STRING.length() == 0) {
                 overlay_translation_text.setVisibility(View.INVISIBLE);
@@ -107,13 +107,8 @@ public class create_overlay_translation_text extends Service {
                 });
     }
 
-    private void toast(String message) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
+    /*private void toast(String message) {
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
+    }*/
 
 }

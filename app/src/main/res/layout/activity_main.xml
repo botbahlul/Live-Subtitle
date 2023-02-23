@@ -103,17 +103,18 @@
             />
         <EditText
             android:id="@+id/voice_text"
-            android:hint="@string/recognized_words"
-            android:gravity="start"
-            android:textAlignment="gravity"
-            android:textColorHint="#616161"
-            android:textSize="16sp"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
             android:autofillHints=""
+            android:background="@android:drawable/editbox_background"
+            android:gravity="start"
             android:focusable="false"
             android:focusableInTouchMode="true"
+            android:hint="@string/recognized_words"
             android:maxLines="3"
-            android:layout_width="match_parent"
-            android:layout_height="102dp"
+            android:textSize="18sp"
+            android:textAlignment="gravity"
+            android:textColorHint="#616161"
             tools:ignore="LabelFor,TextFields"
             />
         <View
@@ -202,7 +203,15 @@
             android:layout_height="wrap_content"
             />
         <TextView
-            android:id="@+id/textview_debug2"
+            android:id="@+id/textview_output_messages"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:textAlignment="gravity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            />
+        <TextView
+            android:id="@+id/textview_mlkit_status"
             android:textSize="14sp"
             android:gravity="center"
             android:textAlignment="gravity"
