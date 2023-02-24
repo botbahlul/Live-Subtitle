@@ -261,7 +261,7 @@ public class VoiceRecognizer extends Service {
                 @Override
                 public void run() {
                     if (VOICE_TEXT.STRING != null && MLKIT_DICTIONARY.READY) {
-                        executor.execute(() -> translator.translate(MainActivity.voice_text.getText().toString()).addOnSuccessListener(s -> TRANSLATION_TEXT.STRING = s.toLowerCase(Locale.forLanguageTag(LANGUAGE.DST))).addOnFailureListener(e -> {}));
+                        executor.execute(() -> translator.translate(VOICE_TEXT.STRING).addOnSuccessListener(s -> TRANSLATION_TEXT.STRING = s.toLowerCase(Locale.forLanguageTag(LANGUAGE.DST))).addOnFailureListener(e -> {}));
                         handler.post(() -> {
                             if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
                                 if (TRANSLATION_TEXT.STRING.length() == 0) {
