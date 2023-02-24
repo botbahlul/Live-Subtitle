@@ -158,17 +158,13 @@ public class VoiceRecognizer extends Service {
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
                     } else {
-                        /*if (Objects.equals(getErrorText(errorCode), "RecognitionService busy")) {
-                            //speechRecognizer.stopListening();
-                            setText(MainActivity.textview_debug, "");
-                        }*/
                         if (Objects.equals(getErrorText(errorCode), "Insufficient permissions")) {
                             String msg = "Please give RECORD AUDIO PERMISSION (USE MICROPHONE PERMISSION) to GOOGLE APP";
                             setText(MainActivity.textview_output_messages, msg);
                         }
-                        /*else {
+                        else {
                             setText(MainActivity.textview_debug, "onError : " + errorMessage);
-                        }*/
+                        }
                         speechRecognizer.startListening(speechRecognizerIntent);
                     }
                 }
@@ -305,13 +301,13 @@ public class VoiceRecognizer extends Service {
             timer.schedule(timerTask,0,1000);
         }
         else {
-            if (translator != null) translator.close();
             speechRecognizer.stopListening();
             if (timerTask != null) timerTask.cancel();
             if (timer != null) {
                 timer.cancel();
                 timer.purge();
             }
+            if (translator != null) translator.close();
             stopSelf();
         }
 
@@ -320,12 +316,12 @@ public class VoiceRecognizer extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (translator != null) translator.close();
         if (speechRecognizer != null) speechRecognizer.destroy();
         if (timer != null) {
             timer.cancel();
             timer.purge();
         }
+        if (translator != null) translator.close();
     }
 
     public void setText(final TextView tv, final String text){
