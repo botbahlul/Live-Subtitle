@@ -574,7 +574,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                             else {
                                 OVERLAYING_STATUS.IS_OVERLAYING = false;
-                                String os = "Failed to get overlay permission in 15 seconds, please retry to tap TOGGLE OVERLAY button again";
+                                String os = "Please retry to tap TOGGLE OVERLAY button again";
                                 setText(textview_output_messages, os);
                             }
                             OVERLAYING_STATUS.STRING = "OVERLAYING_STATUS.IS_OVERLAYING = " + OVERLAYING_STATUS.IS_OVERLAYING;
