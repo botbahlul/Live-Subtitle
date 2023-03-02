@@ -177,17 +177,6 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
         }
 
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy()) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                Uri uri = Uri.parse("package:" + MainActivity.this.getPackageName());
-                startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, uri));
-            }
-        } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-            }
-        }
-
         checkbox_debug_mode.setOnClickListener(view -> {
             if(((CompoundButton) view).isChecked()){
                 textview_src_dialect.setVisibility(View.VISIBLE);
@@ -693,17 +682,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void check_mlkit_dictionary() {
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q && !Environment.isExternalStorageLegacy()) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                Uri uri = Uri.parse("package:" + this.getPackageName());
-                startActivity(new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, uri));
-            }
-        } else {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
-            }
-        }
-
         if (Objects.equals(LANGUAGE.SRC, LANGUAGE.DST)) {
             MLKIT_DICTIONARY.READY = true;
             mlkit_status_message = "";
