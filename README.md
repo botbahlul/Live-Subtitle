@@ -8,6 +8,9 @@ It's FREE and supports all languages supported by Google with very good accuracy
 
 CONS:
 It currently can only listen if you PLAY YOUTUBE STREAM (NOT ALL STREAMS!) via ANDROID VLC PLAYER
+Please note that when you select a VOICE LANGUAGE or TRANSLATION LANGUAGE this app needs to DOWNLOAD MLKIT DICTIONARY first before it can show the translation
+
+![image](https://user-images.githubusercontent.com/88623122/222401306-597cb0d2-bd12-4ddf-8d3c-40da14c77203.png)
 
 
 VLC UPDATE NOTES : IF YOUR VLC CANNOT PLAY DIRECT YOUTUBE LINK URL ANYMORE, YOU NEED TO UPDATE youtube.lua SCRIPT INSIDE VLC
