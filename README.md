@@ -80,3 +80,4 @@ https://user-images.githubusercontent.com/88623122/193420307-288c6576-050f-451e-
 
 Check my other SPEECH RECOGNITIION + TRANSLATE PROJECTS https://github.com/botbahlul?tab=repositories
 
+Buy me coffee : https://sociabuzz.com/botbahlul/tribe
