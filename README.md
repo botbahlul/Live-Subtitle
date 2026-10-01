@@ -7,7 +7,7 @@ PROS:
 It's FREE and supports all languages supported by Google with very good accuracy
 
 CONS:
-It currently can only listen smoothly if you watch stream on MyPlayer app (https://github.com/botbahlul/myplayer) (NOT ALL STREAMS! ONLY STREAMING THAT SUPPORTED BY STREAMLINK : https://github.com/streamlink/streamlink)
+It currently can only listen smoothly if you watch stream on MyPlayer app (NOT ALL STREAMS! ONLY STREAMING THAT SUPPORTED BY STREAMLINK : https://github.com/streamlink/streamlink)
 
 And also please note that when you select a VOICE LANGUAGE or TRANSLATION LANGUAGE this app needs to DOWNLOAD MLKIT DICTIONARY first before it can show the translation
 
