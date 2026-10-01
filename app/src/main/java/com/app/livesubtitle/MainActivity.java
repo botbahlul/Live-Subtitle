@@ -10,15 +10,13 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.AudioManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,7 +27,6 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,7 +34,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.mlkit.common.model.DownloadConditions;
-import com.google.mlkit.nl.translate.Translation;
 import com.google.mlkit.nl.translate.Translator;
 import com.google.mlkit.nl.translate.TranslatorOptions;
 
@@ -100,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
     private File file_src_en_folder;
     private File file_dst_en_folder;
     private String mlkit_status_message = "";
+
+    private final String GOOGLE_SEARCH_PACKAGE = "com.google.android.googlequicksearchbox";
+    private final Intent ri = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
 
     //DON'T FORGET TO MODIFY AndroidManifest.xml
     //         <activity
@@ -284,36 +283,75 @@ public class MainActivity extends AppCompatActivity {
             textview_mlkit_status.setVisibility(View.GONE);
         }
 
-        final Intent intent = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
-        PackageManager packageManager = getPackageManager();
-        boolean isInstalled = isPackageInstalled("com.google.android.googlequicksearchbox", packageManager);
+        PackageManager pm = getPackageManager();
+        boolean isInstalled = isPackageInstalled(GOOGLE_SEARCH_PACKAGE, pm);
         if (!isInstalled) {
-            //Toast.makeText(this,"Please install Googple app (com.google.android.googlequicksearchbox)",Toast.LENGTH_SHORT).show();
             setText(textview_mlkit_status, "Please install Googple app (com.google.android.googlequicksearchbox)");
+        } else {
+            ri.setPackage(GOOGLE_SEARCH_PACKAGE);
         }
+        ri.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+
+        final Intent intent = new Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS);
         if (isInstalled) intent.setPackage("com.google.android.googlequicksearchbox");
 
-        this.sendOrderedBroadcast(intent,null,new BroadcastReceiver() {
+        this.sendOrderedBroadcast(ri, null, new BroadcastReceiver() {
                     @Override
                     public void onReceive(Context context, Intent intent) {
-                        final Bundle extra = getResultExtras(false);
-                        if (getResultCode() == Activity.RESULT_OK && extra.containsKey(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES)) {
+                        Bundle extra = getResultExtras(false);
+                        if (extra == null || !extra.containsKey(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES)) {
+                            extra = intent.getExtras();
+                        }
+
+                        Log.d("MainActivity", "extra = " + extra);
+                        if (extra != null && extra.containsKey(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES)) {
                             arraylist_languages = extra.getStringArrayList(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES);
-                            dialects = arraylist_languages.toArray(new String[0]);
-                            for (int i = 0; i < dialects.length; i++) {
-                                dialects[i] = dialects[i].trim();
-                            }
-                            if (arraylist_languages != null) {
-                                for (int i = 0; i < arraylist_languages.size(); i++) {
-                                    Locale locale = Locale.forLanguageTag(arraylist_languages.get(i));
-                                    arraylist_languages.set(i, locale.getDisplayName().trim());
+
+                            if (arraylist_languages != null && !arraylist_languages.isEmpty()) {
+                                dialects = arraylist_languages.toArray(new String[0]);
+                                for (int i = 0; i < dialects.length; i++) {
+                                    dialects[i] = dialects[i].trim();
                                 }
-                                countries = arraylist_languages.toArray(new String[0]);
+
+                                ArrayList<String> displayLanguages = new ArrayList<>();
+                                for (int i = 0; i < arraylist_languages.size(); i++) {
+                                    String rawTag = arraylist_languages.get(i);
+                                    Locale locale = Locale.forLanguageTag(rawTag.replace("_", "-"));
+
+                                    String displayName = locale.getDisplayName().trim();
+                                    String displayNameLower = displayName.toLowerCase();
+
+                                    // Detection based on phone's latest logcat or its dialer code
+                                    if (rawTag.startsWith("cmn-Hans-CN") || rawTag.startsWith("zh-CN") || displayName.contains("普通话 (中国大陆)")) {
+                                        displayName = "Chinese Simplified (China)";
+                                    }
+                                    else if (rawTag.startsWith("cmn-Hant-TW") || rawTag.startsWith("zh-TW") || displayName.contains("國語 (台灣)")) {
+                                        displayName = "Chinese Traditional (Taiwan)";
+                                    }
+                                    else if (rawTag.startsWith("cmn-Hans-HK") || displayName.contains("普通話 (香港)")) {
+                                        displayName = "Chinese Simplified (Hong Kong)";
+                                    }
+                                    else if (rawTag.startsWith("yue") || displayName.contains("廣東話 (香港)")) {
+                                        displayName = "Chinese Cantonese (Hong Kong)";
+                                    }
+
+                                    // THERE CAN ONLY BE ONE ADD HERE SO THAT THE DATA SIZE IS BALANCED
+                                    displayLanguages.add(displayName);
+                                }
+
+                                countries = displayLanguages.toArray(new String[0]);
                                 for (int i = 0; i < countries.length; i++) {
                                     countries[i] = countries[i].trim();
                                 }
-                                setup_spinner(arraylist_languages);
+
+                                setup_spinner(displayLanguages);
+
+                            } else {
+                                loadLocaleLanguages();
                             }
+
+                        } else {
+                            loadLocaleLanguages();
                         }
                     }
                 },
@@ -325,24 +363,22 @@ public class MainActivity extends AppCompatActivity {
 
         spinner_src_languages.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                stop_voice_recognizer();
-                if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                    start_voice_recognizer();
-                }
-                stop_create_overlay_translation_text();
-                if (OVERLAYING_STATUS.IS_OVERLAYING) start_create_overlay_translation_text();
-
-                stop_create_overlay_mic_button();
-                if (OVERLAYING_STATUS.IS_OVERLAYING) start_create_overlay_mic_button();
-
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
+
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
                 setText(textview_src, LANGUAGE.SRC);
 
@@ -350,32 +386,23 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
+
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
                 setText(textview_dst, LANGUAGE.DST);
 
-                string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
-                string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
-                string_src_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + "en" ;
-                string_dst_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_dst.getText() + "_" + "en" ;
-                file_en_src_folder = new File(string_en_src_folder);
-                file_en_dst_folder = new File(string_en_dst_folder);
-                file_src_en_folder = new File(string_src_en_folder);
-                file_dst_en_folder = new File(string_dst_en_folder);
-
-                options = new TranslatorOptions.Builder()
-                        .setSourceLanguage(LANGUAGE.SRC)
-                        .setTargetLanguage(LANGUAGE.DST)
-                        .build();
-                translator = Translation.getClient(options);
-                conditions = new DownloadConditions.Builder().build();
-                check_mlkit_dictionary();
-
                 int h;
-                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
+                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh-Hans") || Objects.equals(LANGUAGE.DST, "zh-Hant")) {
                     h = 75;
                 }
                 else {
@@ -386,6 +413,7 @@ public class MainActivity extends AppCompatActivity {
                 stop_voice_recognizer();
                 stop_create_overlay_translation_text();
                 stop_create_overlay_mic_button();
+
                 if (OVERLAYING_STATUS.IS_OVERLAYING) {
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         if (create_overlay_mic_button.mic_button != null) create_overlay_mic_button.mic_button.setImageResource(R.drawable.ic_mic_black_off);
@@ -402,7 +430,7 @@ public class MainActivity extends AppCompatActivity {
                 RECOGNIZING_STATUS.STRING = "RECOGNIZING_STATUS.IS_RECOGNIZING = " + RECOGNIZING_STATUS.IS_RECOGNIZING;
                 setText(textview_recognizing, RECOGNIZING_STATUS.STRING);
                 OVERLAYING_STATUS.STRING =  "OVERLAYING_STATUS.IS_OVERLAYING = " + OVERLAYING_STATUS.IS_OVERLAYING;
-                setText(textview_overlaying, OVERLAYING_STATUS.STRING);
+                textview_overlaying.setText(OVERLAYING_STATUS.STRING);
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
@@ -410,8 +438,15 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -421,8 +456,15 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
@@ -432,22 +474,19 @@ public class MainActivity extends AppCompatActivity {
 
         spinner_dst_languages.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                stop_voice_recognizer();
-                if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                    start_voice_recognizer();
-                }
-                stop_create_overlay_translation_text();
-                if (OVERLAYING_STATUS.IS_OVERLAYING) start_create_overlay_translation_text();
-
-                stop_create_overlay_mic_button();
-                if (OVERLAYING_STATUS.IS_OVERLAYING) start_create_overlay_mic_button();
-
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -457,32 +496,22 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
                 setText(textview_dst, LANGUAGE.DST);
 
-                string_en_src_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_src.getText();
-                string_en_dst_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + "en" + "_" + textview_dst.getText();
-                string_src_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_src.getText() + "_" + "en" ;
-                string_dst_en_folder = Environment.getDataDirectory() + "/data/" + getApplicationContext().getPackageName() + "/no_backup/com.google.mlkit.translate.models/" + textview_dst.getText() + "_" + "en" ;
-                file_en_src_folder = new File(string_en_src_folder);
-                file_en_dst_folder = new File(string_en_dst_folder);
-                file_src_en_folder = new File(string_src_en_folder);
-                file_dst_en_folder = new File(string_dst_en_folder);
-
-                options = new TranslatorOptions.Builder()
-                        .setSourceLanguage(LANGUAGE.SRC)
-                        .setTargetLanguage(LANGUAGE.DST)
-                        .build();
-                translator = Translation.getClient(options);
-                conditions = new DownloadConditions.Builder().build();
-                check_mlkit_dictionary();
-
                 int h;
-                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh")) {
+                if (Objects.equals(LANGUAGE.DST, "ja") || Objects.equals(LANGUAGE.DST, "zh-Hans") || Objects.equals(LANGUAGE.DST, "zh-Hant")) {
                     h = 75;
                 }
                 else {
@@ -505,21 +534,26 @@ public class MainActivity extends AppCompatActivity {
 
                     start_create_overlay_translation_text();
                 }
-
                 RECOGNIZING_STATUS.STRING = "RECOGNIZING_STATUS.IS_RECOGNIZING = " + RECOGNIZING_STATUS.IS_RECOGNIZING;
                 setText(textview_recognizing, RECOGNIZING_STATUS.STRING);
                 OVERLAYING_STATUS.STRING =  "OVERLAYING_STATUS.IS_OVERLAYING = " + OVERLAYING_STATUS.IS_OVERLAYING;
-                setText(textview_overlaying, OVERLAYING_STATUS.STRING);
+                textview_overlaying.setText(OVERLAYING_STATUS.STRING);
             }
 
             public void onNothingSelected(AdapterView<?> adapterView) {
-
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
                     LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    if (LANGUAGE.SRC_DIALECT.equals("yue-Hant-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.SRC_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.SRC_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.SRC = "zh";
+                    switch (LANGUAGE.SRC_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.SRC = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.SRC = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -529,8 +563,15 @@ public class MainActivity extends AppCompatActivity {
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
                     LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    if (LANGUAGE.DST_DIALECT.equals("yue-Hant-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-CN") || LANGUAGE.DST_DIALECT.equals("cmn-Hans-HK") || LANGUAGE.DST_DIALECT.equals("cmn-Hant-TW")) {
-                        LANGUAGE.DST = "zh";
+                    switch (LANGUAGE.DST_DIALECT) {
+                        case "yue-Hant-HK":
+                        case "cmn-Hant-TW":
+                            LANGUAGE.DST = "zh-Hant";
+                            break;
+                        case "cmn-Hans-CN":
+                        case "cmn-Hans-HK":
+                            LANGUAGE.DST = "zh-Hans";
+                            break;
                     }
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
@@ -629,6 +670,7 @@ public class MainActivity extends AppCompatActivity {
         audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, mStreamVolume, AudioManager.ADJUST_SAME);
     }
 
+    /*
     public void setup_spinner(ArrayList<String> supported_languages) {
         countries_dialects = new HashMap<>();
         for (int i=0;i<supported_languages.size();i++) {
@@ -644,6 +686,7 @@ public class MainActivity extends AppCompatActivity {
         spinner_dst_languages.setAdapter(adapter);
         spinner_dst_languages.setSelection(supported_languages.indexOf("English (United States)"));
     }
+    */
 
     private void start_create_overlay_mic_button() {
         Intent i = new Intent(this, create_overlay_mic_button.class);
@@ -772,5 +815,229 @@ public class MainActivity extends AppCompatActivity {
     /*private void toast(String message) {
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
     }*/
+
+    private int getSpinnerIndexByCode(ArrayList<String> supportedLanguages, String targetCode) {
+        if (targetCode == null || targetCode.isEmpty()) return 0;
+
+        if (targetCode.equalsIgnoreCase("zh-CN")) {
+            targetCode = "cmn-Hans-CN";
+        }
+
+        for (int i = 0; i < supportedLanguages.size(); i++) {
+            String displayName = supportedLanguages.get(i);
+            String dialectCode = countries_dialects.get(displayName); // Menghasilkan "id-ID", "id", atau "en-US"
+
+            if (dialectCode != null) {
+                // Memotong "id-ID" menjadi "id" saja agar cocok dengan input parameter Anda
+                String languageCode = dialectCode.split("-")[0];
+                if (languageCode.equalsIgnoreCase(targetCode)) {
+                    return i;
+                }
+            }
+        }
+        return 0;
+    }
+
+    public void setup_spinner(ArrayList<String> supported_languages) {
+        countries_dialects = new HashMap<>();
+        for (int i = 0; i < supported_languages.size(); i++) {
+            countries_dialects.put(supported_languages.get(i), dialects[i]);
+        }
+
+        Collections.sort(supported_languages);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_textview_align, supported_languages);
+        adapter.setDropDownViewResource(R.layout.spinner_textview_align);
+
+        spinner_src_languages.setAdapter(adapter);
+        spinner_dst_languages.setAdapter(adapter);
+
+        spinner_src_languages.setSelection(getSpinnerIndexByCode(supported_languages, "id"));
+        spinner_dst_languages.setSelection(getSpinnerIndexByCode(supported_languages, "en"));
+    }
+
+    private void loadLocaleLanguages() {
+        ArrayList<String> localLanguages = new ArrayList<>();
+        ArrayList<String> tempDialects = new ArrayList<>();
+        ArrayList<String> tempCountries = new ArrayList<>();
+
+        String[][] srcLanguages = {
+                {"Afrikaans", "af-ZA"},
+                {"Albanian", "sq-AL"},
+                {"Amharic", "am-ET"},
+                {"Arabic", "ar-AE"},
+                {"Arabic", "ar-DZ"},
+                {"Arabic", "ar-EG"},
+                {"Arabic", "ar-IQ"},
+                {"Arabic", "ar-JO"},
+                {"Arabic", "ar-KW"},
+                {"Arabic", "ar-LB"},
+                {"Arabic", "ar-LY"},
+                {"Arabic", "ar-MA"},
+                {"Arabic", "ar-OM"},
+                {"Arabic", "ar-QA"},
+                {"Arabic", "ar-SA"},
+                {"Arabic", "ar-SY"},
+                {"Arabic", "ar-TN"},
+                {"Arabic", "ar-YE"},
+                {"Armenian", "hy-AM"},
+                {"Assamese", "as-IN"},
+                {"Azerbaijani", "az-AZ"},
+                {"Basque", "eu-ES"},
+                {"Belarusian", "be-BY"},
+                {"Bengali", "bn-BD"},
+                {"Bengali", "bn-IN"},
+                {"Bosnian", "bs-BA"},
+                {"Bulgarian", "bg-BG"},
+                {"Catalan", "ca-ES"},
+                {"Cebuano", "ceb"},
+                {"Chinese", "cmn-Hans-CN"},
+                {"Chinese", "cmn-Hans-HK"},
+                {"Chinese", "cmn-Hant-TW"},
+                {"Chinese", "yue-Hant-HK"},
+                {"Croatian", "hr-HR"},
+                {"Czech", "cs-CZ"},
+                {"Danish", "da-DK"},
+                {"Dutch", "nl-NL"},
+                {"English", "en-AU"},
+                {"English", "en-CA"},
+                {"English", "en-GH"},
+                {"English", "en-IN"},
+                {"English", "en-KE"},
+                {"English", "en-NG"},
+                {"English", "en-NZ"},
+                {"English", "en-PH"},
+                {"English", "en-TZ"},
+                {"English", "en-ZA"},
+                {"English", "en-GB"},
+                {"English", "en-US"},
+                {"Estonian", "et-EE"},
+                {"Filipino", "fil-PH"},
+                {"Finnish", "fi-FI"},
+                {"French", "fr-CA"},
+                {"French", "fr-FR"},
+                {"Galician", "gl-ES"},
+                {"Georgian", "ka-GE"},
+                {"German", "de-DE"},
+                {"Greek", "el-GR"},
+                {"Gujarati", "gu-IN"},
+                {"Hebrew", "he-IL"},
+                {"Hindi", "hi-IN"},
+                {"Hungarian", "hu-HU"},
+                {"Icelandic", "is-IS"},
+                {"Indonesian", "id-ID"},
+                {"Irish", "ga-IE"},
+                {"Italian", "it-CH"},
+                {"Italian", "it-IT"},
+                {"Japanese", "ja-JP"},
+                {"Javanese", "jv-ID"},
+                {"Kannada", "kn-IN"},
+                {"Kazakh", "kk-KZ"},
+                {"Khmer", "km-KH"},
+                {"Korean", "ko-KR"},
+                {"Kyrgyz", "ky-KG"},
+                {"Lao", "lo-LA"},
+                {"Latvian", "lv-LV"},
+                {"Lingala", "ln-CD"},
+                {"Lithuanian", "lt-LT"},
+                {"Malay", "ms-MY"},
+                {"Malayalam", "ml-IN"},
+                {"Maltese", "mt-MT"},
+                {"Marathi", "mr-IN"},
+                {"Macedonian", "mk-MK"},
+                {"Mongolian", "mn-MN"},
+                {"Nepali", "ne-NP"},
+                {"Norwegian Bokmål", "nb-NO"},
+                {"Persian", "fa-IR"},
+                {"Polish", "pl-PL"},
+                {"Portuguese", "pt-BR"},
+                {"Portuguese", "pt-PT"},
+                {"Punjabi", "pa-IN"},
+                {"Romanian", "ro-RO"},
+                {"Russian", "ru-RU"},
+                {"Serbian", "sr-RS"},
+                {"Sinhala", "si-LK"},
+                {"Slovak", "sk-SK"},
+                {"Slovenian", "sl-SI"},
+                {"Spanish", "es-AR"},
+                {"Spanish", "es-BO"},
+                {"Spanish", "es-CL"},
+                {"Spanish", "es-CO"},
+                {"Spanish", "es-CR"},
+                {"Spanish", "es-DO"},
+                {"Spanish", "es-EC"},
+                {"Spanish", "es-ES"},
+                {"Spanish", "es-GT"},
+                {"Spanish", "es-HN"},
+                {"Spanish", "es-MX"},
+                {"Spanish", "es-NI"},
+                {"Spanish", "es-PA"},
+                {"Spanish", "es-PE"},
+                {"Spanish", "es-PR"},
+                {"Spanish", "es-PY"},
+                {"Spanish", "es-SV"},
+                {"Spanish", "es-US"},
+                {"Spanish", "es-UY"},
+                {"Spanish", "es-VE"},
+                {"Sundanese", "su-ID"},
+                {"Swahili", "sw-KE"},
+                {"Swahili", "sw-TZ"},
+                {"Swedish", "sv-SE"},
+                {"Tamil", "ta-IN"},
+                {"Tamil", "ta-LK"},
+                {"Tamil", "ta-MY"},
+                {"Tamil", "ta-SG"},
+                {"Telugu", "te-IN"},
+                {"Thai", "th-TH"},
+                {"Turkish", "tr-TR"},
+                {"Ukrainian", "uk-UA"},
+                {"Urdu", "ur-IN"},
+                {"Urdu", "ur-PK"},
+                {"Vietnamese", "vi-VN"},
+                {"Zulu", "zu-ZA"}
+        };
+
+        for (String[] language : srcLanguages) {
+            if (!localLanguages.contains(language[0])) {
+                localLanguages.add(language[0]);
+                tempDialects.add(language[1]);
+                tempCountries.add(language[0]);
+            }
+        }
+
+        dialects = tempDialects.toArray(new String[0]);
+        countries = tempCountries.toArray(new String[0]);
+
+        setup_spinner(localLanguages);
+    }
+
+    private void loadLocaleLanguages1() {
+        ArrayList<String> localLanguages = new ArrayList<>();
+
+        // Retrieves the list of language code standards (ISO 639) currently supported by the Android Engine
+        String[] isoLanguages = Locale.getISOLanguages();
+        ArrayList<String> tempDialects = new ArrayList<>();
+        ArrayList<String> tempCountries = new ArrayList<>();
+
+        // Limit the number of primary languages ​​retrieved so the Spinner doesn't become too crowded or heavy.
+        for (String langCode : isoLanguages) {
+            Locale locale = new Locale(langCode);
+            String displayName = locale.getDisplayName().trim();
+
+            // Filter to exclude strange language names or those consisting of numeric codes
+            if (!displayName.isEmpty() && !localLanguages.contains(displayName) && displayName.length() < 30) {
+                localLanguages.add(displayName);
+                tempDialects.add(locale.toLanguageTag());
+                tempCountries.add(displayName);
+            }
+        }
+
+        // Convert back to your global array to keep it synchronized with your audio recording system.
+        dialects = tempDialects.toArray(new String[0]);
+        countries = tempCountries.toArray(new String[0]);
+
+        // Safely insert the result into your spinner in version 17
+        setup_spinner(localLanguages);
+    }
 
 }

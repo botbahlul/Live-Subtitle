@@ -3,6 +3,7 @@ package com.app.livesubtitle;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -60,6 +61,7 @@ public class VoiceRecognizer extends Service {
         else {
             h = 109;
         }
+
         MainActivity.voice_text.setHeight((int) (h * getResources().getDisplayMetrics().density));
 
         String src_dialect = LANGUAGE.SRC_DIALECT;
@@ -102,20 +104,24 @@ public class VoiceRecognizer extends Service {
         if(SpeechRecognizer.isRecognitionAvailable(this)) {
             speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
             speechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, Objects.requireNonNull(getClass().getPackage()).getName());
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
             //speechRecognizerIntent.putExtra("android.speech.extra.HIDE_PARTIAL_TRAILING_PUNCTUATION", true);
-            //speechRecognizerIntent.putExtra("android.speech.extra.DICTATION_MODE", true);
+            speechRecognizerIntent.putExtra("android.speech.extra.DICTATION_MODE", true);
             //speechRecognizerIntent.putExtra("android.speech.extra.AUDIO_SOURCE",true);
+            speechRecognizerIntent.putExtra("android.speech.extra.AUDIO_SOURCE", 1); // 1 = Media/Default Source
+            speechRecognizerIntent.putExtra("android.speech.extra.RECEIVE_AUDIO_RECORD_NOTIFICATION", false);
+            speechRecognizerIntent.putExtra("android.speech.extra.REQUEST_AUDIO_FOCUS", false); // Mencegah Google meminta Audio Focus
             //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO",true);
             //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", AudioFormat.ENCODING_PCM_8BIT);
-            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
-            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, src_dialect);
-            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,3600000);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,3600000);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
+            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
+            speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "com.google.android.googlequicksearchbox");
             //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
@@ -123,11 +129,35 @@ public class VoiceRecognizer extends Service {
                 @Override
                 public void onReadyForSpeech(Bundle arg0) {
                     setText(MainActivity.textview_debug, "onReadyForSpeech");
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                    } else {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                //sendMediaPlay();
+                                MyNotificationListenerService.ensureOperaPlaying();
+                            }
+                        }, 200);
+                    }
                 }
 
                 @Override
                 public void onBeginningOfSpeech() {
                     setText(MainActivity.textview_debug, "onBeginningOfSpeech");
+                    /*
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                    } else {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                //sendMediaPlay();
+                                MyNotificationListenerService.ensureOperaPlaying();
+                            }
+                        }, 200);
+                    }
+                    */
                 }
 
                 @Override
@@ -138,6 +168,19 @@ public class VoiceRecognizer extends Service {
                 @Override
                 public void onBufferReceived(byte[] buffer) {
                     setText(MainActivity.textview_debug, "onBufferReceived: " + Arrays.toString(buffer));
+                    /*
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                    } else {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                //sendMediaPlay();
+                                MyNotificationListenerService.ensureOperaPlaying();
+                            }
+                        }, 200);
+                    }
+                    */
                 }
 
                 @Override
@@ -145,49 +188,55 @@ public class VoiceRecognizer extends Service {
                     setText(MainActivity.textview_debug, "onEndOfSpeech");
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
-                        if (translator != null) translator.close();
                     } else {
                         speechRecognizer.startListening(speechRecognizerIntent);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                //sendMediaPlay();
+                                MyNotificationListenerService.ensureOperaPlaying();
+                            }
+                        }, 200);
                     }
                 }
 
                 @Override
                 public void onError(int errorCode) {
-                    String errorMessage = getErrorText(errorCode);
-                    setText(MainActivity.textview_debug, "onError : " + errorMessage);
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
                     } else {
                         if (Objects.equals(getErrorText(errorCode), "Insufficient permissions")) {
-                            String msg = "Please give RECORD AUDIO PERMISSION (USE MICROPHONE PERMISSION) to GOOGLE APP";
-                            setText(MainActivity.textview_output_messages, msg);
-                        }
-                        else {
-                            setText(MainActivity.textview_debug, "onError : " + errorMessage);
+                            setText(MainActivity.textview_output_messages, "Please give RECORD AUDIO PERMISSION (USE MICROPHONE PERMISSION) to GOOGLE APP");
+                        } else {
+                            setText(MainActivity.textview_debug, "onError : " + getErrorText(errorCode));
                         }
                         speechRecognizer.startListening(speechRecognizerIntent);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                //sendMediaPlay();
+                                MyNotificationListenerService.ensureOperaPlaying();
+                            }
+                        }, 200);
                     }
                 }
 
                 @Override
                 public void onResults(Bundle results) {
-                    //setText(MainActivity.textview_debug, "onResults");
-                    /*if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        speechRecognizer.stopListening();
-                    } else {
-                        ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                        VOICE_TEXT.STRING = matches.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
-                        setText(MainActivity.voice_text, VOICE_TEXT.STRING);
-                        MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
-                        speechRecognizer.startListening(speechRecognizerIntent);
-                    }*/
+                        /*setText(MainActivity.textview_output_messages, "onResults");
+                        if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                            speechRecognizer.stopListening();
+                        } else {
+                            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                            VOICE_TEXT.STRING = matches.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
+                            MainActivity.voice_text.setText(VOICE_TEXT.STRING);
+                            MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
+                            speechRecognizer.startListening(speechRecognizerIntent);
+                        }*/
                 }
 
                 @Override
                 public void onPartialResults(Bundle results) {
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
-                        if (translator != null) translator.close();
                     } else {
                         ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         if (PREFER_OFFLINE_STATUS.OFFLINE) {
@@ -206,7 +255,20 @@ public class VoiceRecognizer extends Service {
 
                 @Override
                 public void onEvent(int arg0, Bundle arg1) {
-                    //setText(MainActivity.textview_debug, "onEvent");
+                    setText(MainActivity.textview_output_messages, "onEvent");
+                    /*
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                        speechRecognizer.stopListening();
+                    } else {
+                        speechRecognizer.startListening(speechRecognizerIntent);
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                //sendMediaPlay();
+                                MyNotificationListenerService.ensureOperaPlaying();
+                            }
+                        }, 200);
+                    }
+                    */
                 }
 
                 public String getErrorText(int errorCode) {
