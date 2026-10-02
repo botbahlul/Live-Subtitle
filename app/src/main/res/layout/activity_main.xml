@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root"
     android:layout_width="fill_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="fill_parent"
     android:layout_marginLeft="5dp"
     android:layout_marginRight="5dp"
     android:layout_gravity="center_horizontal"
@@ -88,15 +88,33 @@
             android:layout_width="match_parent"
             android:layout_height="12sp"
             />
-        <CheckBox
-            android:id="@+id/checkbox_offline_mode"
-            android:text="@string/use_offline_mode"
-            android:gravity="start"
-            android:layout_gravity="start"
-            android:textSize="16sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            />
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <CheckBox
+                android:id="@+id/checkbox_offline_mode"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="5dp"
+                android:gravity="center_vertical"
+                android:padding="0dp"
+                android:text="@string/use_offline_mode"
+                android:textSize="16sp"
+                />
+            <Button
+                android:id="@+id/button_download_language"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="5dp"
+                android:paddingStart="2dp"
+                android:paddingEnd="2dp"
+                android:minWidth="0dp"
+                android:text="@string/download_language"
+                android:textSize="14sp"
+                android:visibility="gone"
+                />
+        </TableRow>
         <View
             android:layout_width="match_parent"
             android:layout_height="12sp"
