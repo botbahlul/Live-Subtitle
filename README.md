@@ -4,7 +4,7 @@ ANDROID APP that can RECOGNIZE MyPlayer app (https://github.com/botbahlul/myplay
 This app has PROS & CONS compared to other Speech Recognition APIs like VOSK, IBM WATSON, and PREMIUM GOOGPLE SPEECH API
 
 PROS:
-It's FREE and supports all languages supported by Google with very good accuracy
+It's FREE and supports all languages supported by Google with very good accuracy especially in Offline Mode
 
 CONS:
 It currently can only listen smoothly if you watch stream on MyPlayer app (NOT ALL STREAMS! ONLY STREAMS THAT SUPPORTED BY STREAMLINK : https://github.com/streamlink/streamlink)
