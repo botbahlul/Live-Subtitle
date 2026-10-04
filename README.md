@@ -11,7 +11,7 @@ It currently can only listen smoothly if you watch stream on MyPlayer app (NOT A
 
 And also please note that when you select a VOICE LANGUAGE or TRANSLATION LANGUAGE this app needs to DOWNLOAD MLKIT DICTIONARY first before it can show the translation
 
-<img width="471" height="810" alt="image" src="https://github.com/user-attachments/assets/985b80d5-5a37-4fdd-9556-9e0820f32b9c" />
+<img width="471" height="810" alt="image" src="https://github.com/user-attachments/assets/5f88ee75-ac0d-4d8c-9208-29f0f197ba5d" />
 
 
 If you don't see your desired voice language in download language dialogue of Use Offline Mode, open your phone Settings, search for Language and Input - Manage Keyboard - Google Voice Typing - Languages
