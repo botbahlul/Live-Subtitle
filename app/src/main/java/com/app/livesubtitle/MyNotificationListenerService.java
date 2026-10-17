@@ -2,14 +2,20 @@ package com.app.livesubtitle;
 
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.media.MediaMetadata;
 import android.media.session.MediaController;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
-import android.os.Handler;
-import android.os.Looper;
+import android.os.Build;
+import android.os.IBinder;
+import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
+
+import androidx.core.app.NotificationManagerCompat;
 
 import java.util.List;
 
@@ -18,22 +24,42 @@ public class MyNotificationListenerService
 
     private static final String TAG = "MyNotificationListener";
     private static MyNotificationListenerService instance;
+    public static volatile boolean isConnected = false;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        Log.d(TAG, "Service onCreate()");
+    }
 
     @Override
     public void onListenerConnected() {
         super.onListenerConnected();
         instance = this;
-        Log.d(TAG, "Notification Listener CONNECTED");
+        Log.d(TAG, "Notification Listener CONNECTED, instance = " + instance);
+        isConnected = true;
         testMediaSessions();
     }
 
     @Override
     public void onListenerDisconnected() {
         super.onListenerDisconnected();
-        if (instance == this) {
-            instance = null;
+        isConnected = false;
+        if (instance == this) instance = null;
+        Log.d(TAG, "Notification Listener DISCONNECTED, instance = " + instance);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            requestRebind(new ComponentName(this, MyNotificationListenerService.class));
         }
-        Log.d(TAG, "Notification Listener DISCONNECTED");
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return super.onBind(intent); // wajib, jangan di-override tanpa super
+    }
+
+    @Override
+    public void onNotificationPosted(StatusBarNotification sbn) {
+        //Log.d(TAG, "Notification Listener onNotificationPosted, instance = " + instance);
     }
 
     private void testMediaSessions() {
@@ -79,6 +105,7 @@ public class MyNotificationListenerService
     }
 
     public static void ensureOperaPlaying() {
+        //Log.d(TAG, "ensureOperaPlaying() called, instance=" + instance);
         if (instance == null) {
             Log.e(TAG, "Notification Listener is not connected");
             return;
@@ -147,6 +174,38 @@ public class MyNotificationListenerService
                 return "STATE_CONNECTING";
             default:
                 return "UNKNOWN(" + state + ")";
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        if (instance == this) instance = null;
+        isConnected = false;
+        super.onDestroy();
+    }
+
+    public static boolean isEnabled(Context context) {
+        return NotificationManagerCompat
+                .getEnabledListenerPackages(context)
+                .contains(context.getPackageName());
+    }
+
+    /** Paksa sistem bind ulang: toggle komponen lalu requestRebind. */
+    public static void forceRebind(Context context) {
+        if (!isEnabled(context)) return;
+
+        PackageManager pm = context.getPackageManager();
+        ComponentName cn = new ComponentName(context, MyNotificationListenerService.class);
+
+        pm.setComponentEnabledSetting(cn,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP);
+        pm.setComponentEnabledSetting(cn,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            NotificationListenerService.requestRebind(cn);
         }
     }
 

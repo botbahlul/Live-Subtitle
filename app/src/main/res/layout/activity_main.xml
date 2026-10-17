@@ -120,6 +120,22 @@
             android:layout_height="12sp"
             />
         <EditText
+            android:id="@+id/full_voice_text"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:autofillHints=""
+            android:background="@android:drawable/editbox_background"
+            android:gravity="bottom"
+            android:focusable="false"
+            android:focusableInTouchMode="true"
+            android:hint="@string/recognized_sentences"
+            android:maxLines="3"
+            android:textSize="18sp"
+            android:textAlignment="gravity"
+            android:textColorHint="#616161"
+            tools:ignore="LabelFor,TextFields"
+            />
+        <EditText
             android:id="@+id/voice_text"
             android:layout_width="match_parent"
             android:layout_height="120dp"

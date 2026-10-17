@@ -9,4 +9,5 @@
     <string name="recognized_words">Recognized words</string>
     <string name="debug_mode">Debug mode</string>
     <string name="download_language">DOWNLOAD LANGUAGE</string>
+    <string name="recognized_sentences">Recognized sentences</string>
 </resources>

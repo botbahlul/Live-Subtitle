@@ -3,7 +3,6 @@ package com.app.livesubtitle;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -11,10 +10,8 @@ import android.os.Looper;
 import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.BackgroundColorSpan;
-import android.text.style.ForegroundColorSpan;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.TextView;
 
@@ -32,6 +29,23 @@ import java.util.TimerTask;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+// HOW TO USE MLKIT TRANSLATE
+// ==========================
+//options = new TranslatorOptions.Builder()
+//      .setSourceLanguage(LANGUAGE.SRC)
+//      .setTargetLanguage(LANGUAGE.DST)
+//      .build();
+//translator = Translation.getClient(options);
+//translator.translate(lastVoiceString)
+//        .addOnSuccessListener(s -> {
+//        translatedLastVoiceString = s.toLowerCase(Locale.forLanguageTag(LANGUAGE.DST));
+//          // DO UI STUFFS
+//        })
+//        .addOnFailureListener(e -> {
+//          Log.e(TAG, "Translation failed", e);
+//        });
+
+
 public class VoiceRecognizer extends Service {
 
     public VoiceRecognizer() {}
@@ -42,6 +56,7 @@ public class VoiceRecognizer extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    private static final String TAG = "VoiceRecognizer";
     private SpeechRecognizer speechRecognizer = null;
     public static Intent speechRecognizerIntent;
     private Translator translator;
@@ -50,6 +65,8 @@ public class VoiceRecognizer extends Service {
     private String mlkit_status_message = "";
     private Timer timer;
     private TimerTask timerTask;
+    public String lastVoiceString = "";
+    public String translatedLastVoiceString = "";
 
     @Override
     public void onCreate() {
@@ -63,15 +80,23 @@ public class VoiceRecognizer extends Service {
         }
 
         MainActivity.voice_text.setHeight((int) (h * getResources().getDisplayMetrics().density));
+        MainActivity.full_voice_text.setHeight((int) (h * getResources().getDisplayMetrics().density));
+        MainActivity.full_voice_text.setGravity(Gravity.BOTTOM);
 
-        String src_dialect = LANGUAGE.SRC_DIALECT;
         if(speechRecognizer != null) speechRecognizer.destroy();
         //setText(MainActivity.textview_debug, "isRecognitionAvailable: " + SpeechRecognizer.isRecognitionAvailable(this));
 
         RECOGNIZING_STATUS.STRING = "RECOGNIZING_STATUS.IS_RECOGNIZING = " + RECOGNIZING_STATUS.IS_RECOGNIZING;
         setText(MainActivity.textview_recognizing, RECOGNIZING_STATUS.STRING);
-        OVERLAYING_STATUS.STRING = "OVERLAYING_STATUS.IS_OVERLAYING = " + OVERLAYING_STATUS.IS_OVERLAYING;
-        setText(MainActivity.textview_overlaying, OVERLAYING_STATUS.STRING);
+        MIC_BUTTON_STATUS.STRING = "MIC_BUTTON_STATUS.IS_OVERLAYING = " + MIC_BUTTON_STATUS.IS_OVERLAYING;
+        setText(MainActivity.textview_overlaying, MIC_BUTTON_STATUS.STRING);
+
+        //if (LANGUAGE.SRC.equals("zh-CN") || LANGUAGE.SRC.equals("zh-TW")) {
+        //    LANGUAGE.SRC = "zh";
+        //}
+        //if (LANGUAGE.DST.equals("zh-CN") || LANGUAGE.DST.equals("zh-TW")) {
+        //    LANGUAGE.DST = "zh";
+        //}
 
         options = new TranslatorOptions.Builder()
                 .setSourceLanguage(LANGUAGE.SRC)
@@ -116,16 +141,16 @@ public class VoiceRecognizer extends Service {
             speechRecognizerIntent.putExtra("android.speech.extra.REQUEST_AUDIO_FOCUS", false); // Mencegah Google meminta Audio Focus
             //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO",true);
             //speechRecognizerIntent.putExtra("android.speech.extra.GET_AUDIO_FORMAT", AudioFormat.ENCODING_PCM_8BIT);
-            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, src_dialect);
-            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,3600000);
+            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, LANGUAGE.SRC_DIALECT);
+            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,3600000);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
             speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 5000);
             if (PREFER_OFFLINE_STATUS.OFFLINE) {
                 speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true);
             }
             //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", true);
-            speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS);
-            speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "com.google.android.googlequicksearchbox");
+            //speechRecognizerIntent.putExtra("android.speech.extra.SEGMENTED_SESSION", RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS);
+            //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, "com.google.android.googlequicksearchbox");
             //speechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, true);
 
             speechRecognizer.setRecognitionListener(new RecognitionListener() {
@@ -186,12 +211,55 @@ public class VoiceRecognizer extends Service {
                     */
                 }
 
+
                 @Override
                 public void onEndOfSpeech() {
                     setText(MainActivity.textview_debug, "onEndOfSpeech");
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
                     } else {
+                        Log.d(TAG, "onEndOfSpeech: Restarting speechRecognizer");
+                        if (!VOICE_TEXT.STRING.isEmpty()) {
+                            lastVoiceString = VOICE_TEXT.STRING + ".\n";
+                            //Log.d(TAG, "onEndOfSpeech: lastVoiceString = VOICE_TEXT.STRING = " + lastVoiceString);
+                        }
+                        if (MainActivity.full_voice_text != null && !lastVoiceString.isEmpty()) {
+                            appendText(MainActivity.full_voice_text, lastVoiceString);
+                            MainActivity.full_voice_text.setSelection(MainActivity.full_voice_text.getText().length());
+                            MainActivity.full_voice_text.setGravity(Gravity.BOTTOM);
+
+                            if (lastVoiceString != null && !Objects.equals(lastVoiceString, "") && MLKIT_DICTIONARY.READY) {
+                                translator.translate(lastVoiceString)
+                                        .addOnSuccessListener(s -> {
+                                            translatedLastVoiceString = s.toLowerCase(Locale.forLanguageTag(LANGUAGE.DST));
+                                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                                if (translatedLastVoiceString.length() != 0 && create_overlay_translation_text.overlay_full_translation_text_container != null) {
+                                                    create_overlay_translation_text.overlay_full_translation_text_container.setVisibility(View.VISIBLE);
+                                                    create_overlay_translation_text.overlay_full_translation_text_container.setBackgroundColor(Color.parseColor("#80000000"));
+                                                    create_overlay_translation_text.overlay_full_translation_text.setVisibility(View.VISIBLE);
+                                                    create_overlay_translation_text.overlay_full_translation_text.setBackgroundColor(Color.TRANSPARENT);
+                                                    create_overlay_translation_text.overlay_full_translation_text.setTextIsSelectable(true);
+                                                    create_overlay_translation_text.overlay_full_translation_text.setHighlightColor(Color.TRANSPARENT);
+                                                    appendText(create_overlay_translation_text.overlay_full_translation_text, translatedLastVoiceString);
+                                                    create_overlay_translation_text.overlay_full_translation_text.setSelection(create_overlay_translation_text.overlay_full_translation_text.getText().length());
+                                                    create_overlay_translation_text.overlay_full_translation_text.setTextColor(Color.parseColor("#FF00FFFF"));
+                                                    create_overlay_translation_text.overlay_full_translation_text.setGravity(Gravity.BOTTOM);
+                                                }
+                                            } else {
+                                                lastVoiceString = "";
+                                                translatedLastVoiceString = "";
+                                                if (create_overlay_translation_text.overlay_translation_text_container != null) {
+                                                    create_overlay_translation_text.overlay_full_translation_text.setVisibility(View.INVISIBLE);
+                                                    create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                                                }
+                                            }
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            // Log error atau handle jika translasi gagal
+                                        });
+                            }
+                            lastVoiceString = "";
+                        }
                         speechRecognizer.startListening(speechRecognizerIntent);
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
@@ -202,8 +270,27 @@ public class VoiceRecognizer extends Service {
                     }
                 }
 
+                /*
+                @Override
+                public void onEndOfSpeech() {
+                    setText(MainActivity.textview_debug, "onEndOfSpeech");
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                        //speechRecognizer.stopListening();
+                        speechRecognizer.stopListening();
+                    } else {
+                        setText(MainActivity.textview_output_messages, "onResults");
+                        if (!VOICE_TEXT.STRING.isEmpty()) {
+                            lastVoiceString = VOICE_TEXT.STRING + ".\n";
+                            Log.d(TAG, "onResults: lastVoiceString = VOICE_TEXT.STRING = " + lastVoiceString);
+                        }
+                    }
+                }
+                */
+
                 @Override
                 public void onError(int errorCode) {
+                    setText(MainActivity.textview_debug, "onError");
+
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
                     } else {
@@ -222,28 +309,52 @@ public class VoiceRecognizer extends Service {
                     }
                 }
 
+                /*
+                @Override public void onError(int errorCode) {
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) return;
+
+                    // Apa pun errornya, selamatkan teks yang belum sempat di-commit
+                    flushPending();
+
+                    if (Objects.equals(getErrorText(errorCode), "Insufficient permissions")) {
+                        setText(MainActivity.textview_output_messages, "Please give RECORD AUDIO PERMISSION (USE MICROPHONE PERMISSION) to GOOGLE APP");
+                    } else {
+                        setText(MainActivity.textview_debug, "onError : " + getErrorText(errorCode));
+                    }
+                    speechRecognizer.startListening(speechRecognizerIntent);
+                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                        if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                            //sendMediaPlay();
+                            MyNotificationListenerService.ensureOperaPlaying();
+                        }
+                    }, 200);
+                }
+                */
+
                 @Override
                 public void onResults(Bundle results) {
-                        /*setText(MainActivity.textview_output_messages, "onResults");
-                        if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                            speechRecognizer.stopListening();
-                        } else {
-                            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                            VOICE_TEXT.STRING = matches.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
-                            MainActivity.voice_text.setText(VOICE_TEXT.STRING);
-                            MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
-                            speechRecognizer.startListening(speechRecognizerIntent);
-                        }*/
+                    setText(MainActivity.textview_debug, "onResults");
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                        //speechRecognizer.stopListening();
+                        speechRecognizer.destroy();
+                    } else {
+                        setText(MainActivity.textview_output_messages, "onResults");
+                        if (!VOICE_TEXT.STRING.isEmpty()) {
+                            lastVoiceString = VOICE_TEXT.STRING + ".\n";
+                            Log.d(TAG, "onResults: lastVoiceString = VOICE_TEXT.STRING = " + lastVoiceString);
+                        }
+                    }
                 }
 
                 @Override
-                public void onPartialResults(Bundle results) {
+                public void onPartialResults(Bundle partial) {
+                    setText(MainActivity.textview_debug, "onPartialResults");
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
                     } else {
-                        ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        ArrayList<String> data = partial.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         if (PREFER_OFFLINE_STATUS.OFFLINE) {
-                            ArrayList<String> unstableData = results.getStringArrayList("android.speech.extra.UNSTABLE_TEXT");
+                            ArrayList<String> unstableData = partial.getStringArrayList("android.speech.extra.UNSTABLE_TEXT");
                             if (unstableData != null) {
                                 VOICE_TEXT.STRING = data.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC)) + unstableData.get(0).toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
                             }
@@ -253,10 +364,66 @@ public class VoiceRecognizer extends Service {
                                 text.append(result);
                             VOICE_TEXT.STRING = text.toString().toLowerCase(Locale.forLanguageTag(LANGUAGE.SRC));
                         }
+                        if (!VOICE_TEXT.STRING.isEmpty()) {
+                            lastVoiceString = VOICE_TEXT.STRING.trim();
+                        }
                         MainActivity.voice_text.setText(VOICE_TEXT.STRING);
                         MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
                     }
                 }
+
+                /*
+                @Override public void onResults(Bundle results) {
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) return;
+
+                    ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    String fin = (data != null && !data.isEmpty()) ? normalize(data.get(0)) : "";
+
+                    // Hasil final kosong: pakai partial terakhir yang kita simpan
+                    String text = !fin.isEmpty() ? fin : lastPartial;
+
+                    // Buang bagian yang sudah di-commit sebagai segmen (hindari duplikasi)
+                    for (String seg : sessionSegments) {
+                        if (text.startsWith(seg)) text = text.substring(seg.length()).trim();
+                    }
+
+                    commitSegment(text);
+                    lastPartial = "";           // sudah tersimpan, jangan di-flush dua kali
+                    flushPending();
+                    scheduleRestart(250);
+                }
+                */
+
+                /*
+                @Override public void onPartialResults(Bundle partial) {
+                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) return;
+                    ArrayList<String> data = partial.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    if (data == null || data.isEmpty()) return;
+
+                    String text = data.get(0);
+                    if (PREFER_OFFLINE_STATUS.OFFLINE) {
+                        ArrayList<String> unstable = partial.getStringArrayList("android.speech.extra.UNSTABLE_TEXT");
+                        if (unstable != null && !unstable.isEmpty()) text += unstable.get(0);
+                    }
+                    text = normalize(text);
+
+                    // 1) Partial kosong: JANGAN menimpa. Pertahankan yang terakhir.
+                    if (text.isEmpty()) return;
+
+                    // 2) Partial yang bukan kelanjutan/revisi: selamatkan yang lama dulu
+                    if (!lastPartial.isEmpty() && looksLikeReset(lastPartial, text)) {
+                        Log.d(TAG, "reset terdeteksi: [" + lastPartial + "] -> [" + text + "]");
+                        commitSegment(lastPartial);
+                    }
+
+                    lastPartial = text;
+                    VOICE_TEXT.STRING = text;
+                    if (MainActivity.voice_text != null) {
+                        MainActivity.voice_text.setText(text);
+                        MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
+                    }
+                }
+                */
 
                 @Override
                 public void onEvent(int arg0, Bundle arg1) {
@@ -315,7 +482,22 @@ public class VoiceRecognizer extends Service {
             });
         }
 
+        if (speechRecognizer == null) {   // setelah blok isRecognitionAvailable
+            setText(MainActivity.textview_output_messages, "Speech recognition not available");
+            stopSelf();
+            return;
+        }
+
         if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+            if (translatedLastVoiceString.length() != 0) {
+                if (create_overlay_translation_text.overlay_full_translation_text_container != null) {
+                    create_overlay_translation_text.overlay_full_translation_text.setVisibility(View.VISIBLE);
+                    create_overlay_translation_text.overlay_full_translation_text_container.setVisibility(View.VISIBLE);
+                }
+            }
+
+            speechRecognizer.startListening(speechRecognizerIntent);
+
             Handler handler = new Handler(Looper.getMainLooper());
             Executor executor = Executors.newSingleThreadExecutor();
             speechRecognizer.startListening(speechRecognizerIntent);
@@ -327,47 +509,39 @@ public class VoiceRecognizer extends Service {
                         executor.execute(() -> translator.translate(VOICE_TEXT.STRING).addOnSuccessListener(s -> TRANSLATION_TEXT.STRING = s.toLowerCase(Locale.forLanguageTag(LANGUAGE.DST))).addOnFailureListener(e -> {}));
                         handler.post(() -> {
                             if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                if (TRANSLATION_TEXT.STRING.length() == 0) {
-                                    create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                                    create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
-                                } else {
-                                    create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.VISIBLE);
-                                    create_overlay_translation_text.overlay_translation_text_container.setBackgroundColor(Color.TRANSPARENT);
-                                    create_overlay_translation_text.overlay_translation_text.setVisibility(View.VISIBLE);
-                                    create_overlay_translation_text.overlay_translation_text.setBackgroundColor(Color.TRANSPARENT);
-                                    create_overlay_translation_text.overlay_translation_text.setTextIsSelectable(true);
-                                    create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-                                    create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
-                                    Spannable spannableString = new SpannableStringBuilder(TRANSLATION_TEXT.STRING);
-                                    spannableString.setSpan(new ForegroundColorSpan(Color.YELLOW),
-                                            0,
-                                            create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
-                                            0);
-                                    spannableString.setSpan(new BackgroundColorSpan(Color.parseColor("#80000000")),
-                                            0,
-                                            create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
-                                            0);
-                                    create_overlay_translation_text.overlay_translation_text.setText(spannableString);
-                                    create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
+                                if (TRANSLATION_TEXT.STRING.length() != 0) {
+                                    if (create_overlay_translation_text.overlay_translation_text_container != null) {
+                                        create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.VISIBLE);
+                                        create_overlay_translation_text.overlay_translation_text_container.setBackgroundColor(Color.parseColor("#80000000"));
+                                        create_overlay_translation_text.overlay_translation_text.setVisibility(View.VISIBLE);
+                                        create_overlay_translation_text.overlay_translation_text.setBackgroundColor(Color.TRANSPARENT);
+                                        create_overlay_translation_text.overlay_translation_text.setTextIsSelectable(true);
+                                        create_overlay_translation_text.overlay_translation_text.setHighlightColor(Color.TRANSPARENT);
+                                        create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
+                                        create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
+                                        create_overlay_translation_text.overlay_translation_text.setTextColor(Color.parseColor("#FFFF00"));
+                                    }
                                 }
                             } else {
                                 VOICE_TEXT.STRING = "";
                                 TRANSLATION_TEXT.STRING = "";
-                                create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                                create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                                if (create_overlay_translation_text.overlay_translation_text_container != null) {
+                                    create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
+                                    create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                                }
                             }
                         });
-                    }
-                    else {
+                    } else {
                         TRANSLATION_TEXT.STRING = "";
-                        create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                        create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                        if (create_overlay_translation_text.overlay_translation_text_container != null) {
+                            create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
+                            create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                        }
                     }
                 }
             };
-            timer.schedule(timerTask,0,1000);
-        }
-        else {
+            timer.schedule(timerTask,0,2000);
+        } else {
             speechRecognizer.stopListening();
             if (timerTask != null) timerTask.cancel();
             if (timer != null) {
@@ -383,58 +557,26 @@ public class VoiceRecognizer extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (speechRecognizer != null) speechRecognizer.destroy();
-        if (timer != null) {
-            timer.cancel();
-            timer.purge();
+        if (speechRecognizer != null) {
+            speechRecognizer.cancel();
+            speechRecognizer.destroy();
+            speechRecognizer = null;
         }
+        if (timer != null) { timer.cancel(); timer.purge(); }
         if (translator != null) translator.close();
     }
 
     public void setText(final TextView tv, final String text){
-        new Handler(Looper.getMainLooper()).post(() -> tv.setText(text));
+        if (tv != null) {
+            new Handler(Looper.getMainLooper()).post(() -> tv.setText(text));
+        }
     }
 
-    /*@SuppressLint("SetTextI18n")
-    private void get_translation(final String text) {
-        Handler handler = new Handler(Looper.getMainLooper());
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        if (MLKIT_DICTIONARY.READY) {
-            executor.execute(() -> {
-                translator.translate(text).addOnSuccessListener(s -> TRANSLATION_TEXT.STRING = s.toLowerCase(Locale.forLanguageTag(LANGUAGE.DST))).addOnFailureListener(e -> {});
-                handler.post(() -> {
-                    if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        if (TRANSLATION_TEXT.STRING.length() == 0) {
-                            create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                            create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
-                        } else {
-                            create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.VISIBLE);
-                            create_overlay_translation_text.overlay_translation_text_container.setBackgroundColor(Color.TRANSPARENT);
-                            create_overlay_translation_text.overlay_translation_text.setVisibility(View.VISIBLE);
-                            create_overlay_translation_text.overlay_translation_text.setBackgroundColor(Color.TRANSPARENT);
-                            create_overlay_translation_text.overlay_translation_text.setTextIsSelectable(true);
-                            create_overlay_translation_text.overlay_translation_text.setText(TRANSLATION_TEXT.STRING);
-                            create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
-                            Spannable spannableString = new SpannableStringBuilder(TRANSLATION_TEXT.STRING);
-                            spannableString.setSpan(new ForegroundColorSpan(Color.YELLOW),
-                                    0,
-                                    create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
-                                    0);
-                            spannableString.setSpan(new BackgroundColorSpan(Color.parseColor("#80000000")),
-                                    0,
-                                    create_overlay_translation_text.overlay_translation_text.getSelectionEnd(),
-                                    0);
-                            create_overlay_translation_text.overlay_translation_text.setText(spannableString);
-                            create_overlay_translation_text.overlay_translation_text.setSelection(create_overlay_translation_text.overlay_translation_text.getText().length());
-                        }
-                    } else {
-                        create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
-                        create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
-                    }
-                });
-            });
+    private void appendText(final TextView tv, final String text){
+        if (tv != null) {
+            new Handler(Looper.getMainLooper()).post(() -> tv.append(text));
         }
-    }*/
+    }
 
     /*private void toast(String message) {
         new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
