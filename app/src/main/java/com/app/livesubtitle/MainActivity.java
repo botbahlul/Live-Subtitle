@@ -813,7 +813,7 @@ public class MainActivity extends AppCompatActivity {
                 "eu-ES","be-BY","bn-BD","bn-IN","bs-BA","bg-BG","ca-ES","ceb",
                 "cmn-Hans-CN","cmn-Hant-TW","yue-Hant-HK",
                 "hr-HR","cs-CZ","da-DK","nl-NL","nl-BE",
-                // English dialeCT
+                // English dialect
                 "en-US","en-GB","en-AU","en-CA","en-IN","en-ID","en-IE","en-NZ",
                 "en-PH","en-SG","en-ZA","en-NG","en-KE","en-GH","en-HK","en-PK","en-TZ",
                 "et-EE","fil-PH","fi-FI",
