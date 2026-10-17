@@ -404,7 +404,7 @@ public class MainActivity extends AppCompatActivity {
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
-                    LANGUAGE.SRC = toMlKitCode(LANGUAGE.SRC_DIALECT);  // dan LANGUAGE.DST = toMlKitCode(LANGUAGE.DST_DIALECT)
+                    LANGUAGE.SRC = toMlKitCode(LANGUAGE.SRC_DIALECT);
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
                 setText(textview_src, LANGUAGE.SRC);
@@ -766,6 +766,26 @@ public class MainActivity extends AppCompatActivity {
         return 0;
     }
 
+    private int getSpinnerIndexByDialectCode(ArrayList<String> supportedLanguages, String targetDialectCode) {
+        if (targetDialectCode == null || targetDialectCode.isEmpty()) return 0;
+
+        if (targetDialectCode.equalsIgnoreCase("zh-CN")) {
+            targetDialectCode = "cmn-Hans-CN";
+        }
+
+        for (int i = 0; i < supportedLanguages.size(); i++) {
+            String displayName = supportedLanguages.get(i);
+            String dialectCode = countries_dialects.get(displayName); // Menghasilkan "id-ID", "id", atau "en-US"
+
+            if (dialectCode != null) {
+                if (dialectCode.equalsIgnoreCase(targetDialectCode)) {
+                    return i;
+                }
+            }
+        }
+        return 0;
+    }
+
     public static boolean isNotificationListenerEnabled(Context context) {
         String flat = Settings.Secure.getString(
                 context.getContentResolver(), "enabled_notification_listeners");
@@ -842,27 +862,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setup_spinner(ArrayList<String> supported_languages) {
-        Map<String, String> map = new HashMap<>();
-        ArrayList<String> names = new ArrayList<>();
-
-        for (int i = 0; i < supported_languages.size() && i < dialects.length; i++) {
-            String name = supported_languages.get(i);
-            String tag = dialects[i];
-            if (map.containsKey(name)) name = name + " [" + tag + "]"; // cegah tabrakan nama
-            map.put(name, tag);
-            names.add(name);
+        countries_dialects = new HashMap<>();
+        for (int i = 0; i < supported_languages.size(); i++) {
+            countries_dialects.put(supported_languages.get(i), dialects[i]);
         }
 
-        Collections.sort(names, String.CASE_INSENSITIVE_ORDER);
-        countries_dialects = map;
+        Collections.sort(supported_languages);
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_textview_align, names);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_textview_align, supported_languages);
         adapter.setDropDownViewResource(R.layout.spinner_textview_align);
+
         spinner_src_languages.setAdapter(adapter);
         spinner_dst_languages.setAdapter(adapter);
 
-        spinner_src_languages.setSelection(indexOfTag(names, "id-ID", "id"));
-        spinner_dst_languages.setSelection(indexOfTag(names, "en-US", "en"));
+        //spinner_src_languages.setSelection(getSpinnerIndexByCode(supported_languages, "id"));
+        //spinner_dst_languages.setSelection(getSpinnerIndexByCode(supported_languages, "en"));
+        spinner_src_languages.setSelection(getSpinnerIndexByDialectCode(supported_languages, "id-ID"));
+        spinner_dst_languages.setSelection(getSpinnerIndexByDialectCode(supported_languages, "en-US"));
     }
 
     // Match the tags exactly first; if not, use the first entry with the same language code
