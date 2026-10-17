@@ -12,7 +12,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -36,7 +35,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.nl.translate.Translator;
@@ -52,7 +50,6 @@ import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import android.service.notification.NotificationListenerService;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -338,7 +335,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intentDownload = new Intent();
                 intentDownload.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 try {
-                    // KODE YANG BENAR UNTUK HALAMAN PENGUNDUHAN BAHASA OFFLINE
+                    // CORRECT CODE FOR OFFLINE LANGUAGE DOWNLOAD PAGE
                     intentDownload.setComponent(new ComponentName(
                             "com.google.android.googlequicksearchbox",
                             "com.google.android.voicesearch.greco3.languagepack.InstallActivity"
@@ -346,7 +343,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(intentDownload);
                 } catch (Exception exception) {
                     try {
-                        // Cadangan alternatif jika struktur update Google App mendeteksi activity berbeda
+                        // Alternative backup if the Google App update structure detects different activity
                         intentDownload.setClassName("com.google.android.googlequicksearchbox",
                                 "com.google.android.voicesearch.writersync.LanguagePackDownloadActivity");
                         startActivity(intentDownload);
@@ -380,42 +377,17 @@ public class MainActivity extends AppCompatActivity {
                                 for (int i = 0; i < arraylist_languages.size(); i++) {
                                     String rawTag = arraylist_languages.get(i);
                                     Locale locale = Locale.forLanguageTag(rawTag.replace("_", "-"));
-
-                                    /*
-                                    String displayName = locale.getDisplayName().trim();
-                                    String displayNameLower = displayName.toLowerCase();
-                                    // Detection based on phone's latest logcat or its dialer code
-                                    if (rawTag.startsWith("cmn-Hans-CN") || rawTag.startsWith("zh-CN") || displayName.contains("普通话 (中国大陆)")) {
-                                        displayName = "Chinese Simplified (China)";
-                                    }
-                                    else if (rawTag.startsWith("cmn-Hant-TW") || rawTag.startsWith("zh-TW") || displayName.contains("國語 (台灣)")) {
-                                        displayName = "Chinese Traditional (Taiwan)";
-                                    }
-                                    else if (rawTag.startsWith("cmn-Hans-HK") || displayName.contains("普通話 (香港)")) {
-                                        displayName = "Chinese Simplified (Hong Kong)";
-                                    }
-                                    else if (rawTag.startsWith("yue") || displayName.contains("廣東話 (香港)")) {
-                                        displayName = "Chinese Cantonese (Hong Kong)";
-                                    }
-                                    // THERE CAN ONLY BE ONE ADD HERE SO THAT THE DATA SIZE IS BALANCED
-                                    displayLanguages.add(displayName);
-                                    */
-
                                     displayLanguages.add(friendlyName(arraylist_languages.get(i)));
-
                                 }
 
                                 countries = displayLanguages.toArray(new String[0]);
                                 for (int i = 0; i < countries.length; i++) {
                                     countries[i] = countries[i].trim();
                                 }
-
                                 setup_spinner(displayLanguages);
-
                             } else {
                                 loadLocaleLanguages();
                             }
-
                         } else {
                             loadLocaleLanguages();
                         }
@@ -432,40 +404,15 @@ public class MainActivity extends AppCompatActivity {
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
-                    //LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    //switch (LANGUAGE.SRC_DIALECT) {
-                    //    case "yue-Hant-HK":
-                    //    case "cmn-Hant-TW":
-                    //        LANGUAGE.SRC = "zh-TW";
-                    //        break;
-                    //    case "cmn-Hans-CN":
-                    //    case "cmn-Hans-HK":
-                    //        LANGUAGE.SRC = "zh-CN";
-                    //        break;
-                    //}
                     LANGUAGE.SRC = toMlKitCode(LANGUAGE.SRC_DIALECT);  // dan LANGUAGE.DST = toMlKitCode(LANGUAGE.DST_DIALECT)
                 }
-
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
                 setText(textview_src, LANGUAGE.SRC);
-
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
-                    //LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    //switch (LANGUAGE.DST_DIALECT) {
-                    //    case "yue-Hant-HK":
-                    //    case "cmn-Hant-TW":
-                    //        LANGUAGE.DST = "zh-TW";
-                    //        break;
-                    //    case "cmn-Hans-CN":
-                    //    case "cmn-Hans-HK":
-                    //        LANGUAGE.DST = "zh-CN";
-                    //        break;
-                    //}
                     LANGUAGE.DST = toMlKitCode(LANGUAGE.DST_DIALECT);
                 }
-
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
                 setText(textview_dst, LANGUAGE.DST);
 
@@ -506,17 +453,6 @@ public class MainActivity extends AppCompatActivity {
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
-                    //LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    //switch (LANGUAGE.SRC_DIALECT) {
-                    //    case "yue-Hant-HK":
-                    //    case "cmn-Hant-TW":
-                    //        LANGUAGE.SRC = "zh-TW";
-                    //        break;
-                    //    case "cmn-Hans-CN":
-                    //    case "cmn-Hans-HK":
-                    //        LANGUAGE.SRC = "zh-CN";
-                    //        break;
-                    //}
                     LANGUAGE.SRC = toMlKitCode(LANGUAGE.SRC_DIALECT);
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -525,17 +461,6 @@ public class MainActivity extends AppCompatActivity {
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
-                    //LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    //switch (LANGUAGE.DST_DIALECT) {
-                    //    case "yue-Hant-HK":
-                    //    case "cmn-Hant-TW":
-                    //        LANGUAGE.DST = "zh-TW";
-                    //        break;
-                    //    case "cmn-Hans-CN":
-                    //    case "cmn-Hans-HK":
-                    //        LANGUAGE.DST = "zh-CN";
-                    //        break;
-                    //}
                     LANGUAGE.DST = toMlKitCode(LANGUAGE.DST_DIALECT);
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
@@ -548,17 +473,6 @@ public class MainActivity extends AppCompatActivity {
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
-                    //LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    //switch (LANGUAGE.SRC_DIALECT) {
-                    //    case "yue-Hant-HK":
-                    //    case "cmn-Hant-TW":
-                    //        LANGUAGE.SRC = "zh-TW";
-                    //        break;
-                    //    case "cmn-Hans-CN":
-                    //    case "cmn-Hans-HK":
-                    //        LANGUAGE.SRC = "zh-CN";
-                    //        break;
-                    //}
                     LANGUAGE.SRC = toMlKitCode(LANGUAGE.SRC_DIALECT);
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
@@ -567,17 +481,6 @@ public class MainActivity extends AppCompatActivity {
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
-                    //LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    //switch (LANGUAGE.DST_DIALECT) {
-                    //    case "yue-Hant-HK":
-                    //    case "cmn-Hant-TW":
-                    //        LANGUAGE.DST = "zh-TW";
-                    //        break;
-                    //    case "cmn-Hans-CN":
-                    //    case "cmn-Hans-HK":
-                    //        LANGUAGE.DST = "zh-CN";
-                    //        break;
-                    //}
                     LANGUAGE.DST = toMlKitCode(LANGUAGE.DST_DIALECT);
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
@@ -618,17 +521,7 @@ public class MainActivity extends AppCompatActivity {
                 String src_country = spinner_src_languages.getSelectedItem().toString();
                 LANGUAGE.SRC_DIALECT = countries_dialects.get(src_country);
                 if (LANGUAGE.SRC_DIALECT != null) {
-                    LANGUAGE.SRC = LANGUAGE.SRC_DIALECT.split("-")[0];
-                    switch (LANGUAGE.SRC_DIALECT) {
-                        case "yue-Hant-HK":
-                        case "cmn-Hant-TW":
-                            LANGUAGE.SRC = "zh-TW";
-                            break;
-                        case "cmn-Hans-CN":
-                        case "cmn-Hans-HK":
-                            LANGUAGE.SRC = "zh-CN";
-                            break;
-                    }
+                    LANGUAGE.SRC = toMlKitCode(LANGUAGE.SRC_DIALECT);
                 }
                 setText(textview_src_dialect, LANGUAGE.SRC_DIALECT);
                 setText(textview_src, LANGUAGE.SRC);
@@ -636,17 +529,7 @@ public class MainActivity extends AppCompatActivity {
                 String dst_country = spinner_dst_languages.getSelectedItem().toString();
                 LANGUAGE.DST_DIALECT = countries_dialects.get(dst_country);
                 if (LANGUAGE.DST_DIALECT != null) {
-                    LANGUAGE.DST = LANGUAGE.DST_DIALECT.split("-")[0];
-                    switch (LANGUAGE.DST_DIALECT) {
-                        case "yue-Hant-HK":
-                        case "cmn-Hant-TW":
-                            LANGUAGE.DST = "zh-TW";
-                            break;
-                        case "cmn-Hans-CN":
-                        case "cmn-Hans-HK":
-                            LANGUAGE.DST = "zh-CN";
-                            break;
-                    }
+                    LANGUAGE.DST = toMlKitCode(LANGUAGE.DST_DIALECT);
                 }
                 setText(textview_dst_dialect, LANGUAGE.DST_DIALECT);
                 setText(textview_dst, LANGUAGE.DST);
@@ -744,19 +627,11 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        //if (isNotificationListenerEnabled(this)) {
-        //    toggleNotificationListenerService(this); // atau requestRebind(this)
-        //} else {
-        //    startActivity(new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS));
-        //}
-        //return;
         if (!MyNotificationListenerService.isEnabled(this)) {
-            // Arahkan user ke Settings lewat tombol/dialog, jangan otomatis tiap onResume
             Intent i = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
             startActivity(i);
 
         }
-        // Beri waktu 1,5 detik agar sistem sempat bind sendiri; jika belum, paksa
         handler.removeCallbacks(checkConnection);
         handler.postDelayed(checkConnection, 1500);
     }
@@ -766,24 +641,6 @@ public class MainActivity extends AppCompatActivity {
         handler.removeCallbacks(checkConnection);
         super.onPause();
     }
-
-    /*
-    public void setup_spinner(ArrayList<String> supported_languages) {
-        countries_dialects = new HashMap<>();
-        for (int i=0;i<supported_languages.size();i++) {
-            countries_dialects.put(supported_languages.get(i), dialects[i]);
-        }
-
-        Collections.sort(supported_languages);
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_textview_align, supported_languages);
-        adapter.setDropDownViewResource(R.layout.spinner_textview_align);
-        spinner_src_languages.setAdapter(adapter);
-        spinner_src_languages.setSelection(supported_languages.indexOf("Indonesian (Indonesia)"));
-        spinner_dst_languages.setAdapter(adapter);
-        spinner_dst_languages.setSelection(supported_languages.indexOf("English (United States)"));
-    }
-    */
 
     private void start_create_overlay_mic_button() {
         Intent i = new Intent(this, create_overlay_mic_button.class);
@@ -877,8 +734,7 @@ public class MainActivity extends AppCompatActivity {
                     })
                     .addOnFailureListener(e -> {});
             if (translator != null) translator.close();
-        }
-        else {
+        } else {
             new Handler(Looper.getMainLooper()).post(() -> {
                 mlkit_status_message = "MLKIT dictionary is ready";
                 setText(textview_mlkit_status, mlkit_status_message);
@@ -888,30 +744,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
-    public void setText(final TextView tv, final String text){
-        new Handler(Looper.getMainLooper()).post(() -> {
-                // Any UI task, example
-                tv.setText(text);
-        });
-    }
-
-    /*private void checkRecordAudioPermission() {
-        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, RecordAudioRequestCode);
-        }
-    }*/
-
-    /*private void checkDrawOverlayPermission() {
-        if (!Settings.canDrawOverlays(this)) {
-            Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
-            startActivity(myIntent);
-        }
-    }*/
-
-    /*private void toast(String message) {
-        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
-    }*/
 
     private int getSpinnerIndexByCode(ArrayList<String> supportedLanguages, String targetCode) {
         if (targetCode == null || targetCode.isEmpty()) return 0;
@@ -925,7 +757,6 @@ public class MainActivity extends AppCompatActivity {
             String dialectCode = countries_dialects.get(displayName); // Menghasilkan "id-ID", "id", atau "en-US"
 
             if (dialectCode != null) {
-                // Memotong "id-ID" menjadi "id" saja agar cocok dengan input parameter Anda
                 String languageCode = dialectCode.split("-")[0];
                 if (languageCode.equalsIgnoreCase(targetCode)) {
                     return i;
@@ -933,140 +764,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return 0;
-    }
-
-    public void setup_spinner_bak(ArrayList<String> supported_languages) {
-        countries_dialects = new HashMap<>();
-        for (int i = 0; i < supported_languages.size(); i++) {
-            countries_dialects.put(supported_languages.get(i), dialects[i]);
-        }
-
-        Collections.sort(supported_languages);
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_textview_align, supported_languages);
-        adapter.setDropDownViewResource(R.layout.spinner_textview_align);
-
-        spinner_src_languages.setAdapter(adapter);
-        spinner_dst_languages.setAdapter(adapter);
-
-        spinner_src_languages.setSelection(getSpinnerIndexByCode(supported_languages, "id"));
-        spinner_dst_languages.setSelection(getSpinnerIndexByCode(supported_languages, "en"));
-    }
-
-    private void loadLocaleLanguages_bak() {
-        ArrayList<String> localLanguages = new ArrayList<>();
-        ArrayList<String> tempDialects = new ArrayList<>();
-        ArrayList<String> tempCountries = new ArrayList<>();
-
-        // Array Anda yang sudah ada (biarkan isinya tetap sama)
-        String[][] srcLanguages = {
-                {"Afrikaans", "af-ZA"},
-                {"Albanian", "sq-AL"},
-                {"Amharic", "am-ET"},
-                {"Arabic", "ar-SA"},
-                {"Armenian", "hy-AM"},
-                {"Assamese", "as-IN"},
-                {"Azerbaijani", "az-AZ"},
-                {"Basque", "eu-ES"},
-                {"Belarusian", "be-BY"},
-                {"Bengali", "bn-BD"},
-                {"Bosnian", "bs-BA"},
-                {"Bulgarian", "bg-BG"},
-                {"Catalan", "ca-ES"},
-                {"Cebuano", "ceb"},
-                {"Chinese Simplified (China)", "cmn-Hans-CN"},
-                {"Chinese Traditional (Taiwan)", "cmn-Hant-TW"},
-                {"Chinese Cantonese (Hong Kong)", "yue-Hant-HK"},
-                {"Croatian", "hr-HR"},
-                {"Czech", "cs-CZ"},
-                {"Danish", "da-DK"},
-                {"Dutch", "nl-NL"},
-                {"English", "en-US"},
-                {"Estonian", "et-EE"},
-                {"Filipino", "fil-PH"},
-                {"Finnish", "fi-FI"},
-                {"French", "fr-FR"},
-                {"Galician", "gl-ES"},
-                {"Georgian", "ka-GE"},
-                {"German", "de-DE"},
-                {"Greek", "el-GR"},
-                {"Gujarati", "gu-IN"},
-                {"Hebrew", "he-IL"},
-                {"Hindi", "hi-IN"},
-                {"Hungarian", "hu-HU"},
-                {"Icelandic", "is-IS"},
-                {"Indonesian", "id-ID"},
-                {"Irish", "ga-IE"},
-                {"Italian", "it-IT"},
-                {"Japanese", "ja-JP"},
-                {"Javanese", "jv-ID"},
-                {"Kannada", "kn-IN"},
-                {"Kazakh", "kk-KZ"},
-                {"Khmer", "km-KH"},
-                {"Korean", "ko-KR"},
-                {"Kyrgyz", "ky-KG"},
-                {"Lao", "lo-LA"},
-                {"Latvian", "lv-LV"},
-                {"Lingala", "ln-CD"},
-                {"Lithuanian", "lt-LT"},
-                {"Malay", "ms-MY"},
-                {"Malayalam", "ml-IN"},
-                {"Maltese", "mt-MT"},
-                {"Marathi", "mr-IN"},
-                {"Macedonian", "mk-MK"},
-                {"Mongolian", "mn-MN"},
-                {"Nepali", "ne-NP"},
-                {"Norwegian Bokmål", "nb-NO"},
-                {"Persian", "fa-IR"},
-                {"Polish", "pl-PL"},
-                {"Portuguese", "pt-BR"},
-                {"Punjabi", "pa-IN"},
-                {"Romanian", "ro-RO"},
-                {"Russian", "ru-RU"},
-                {"Serbian", "sr-RS"},
-                {"Sinhala", "si-LK"},
-                {"Slovak", "sk-SK"},
-                {"Slovenian", "sl-SI"},
-                {"Spanish", "es-ES"},
-                {"Sundanese", "su-ID"},
-                {"Swahili", "sw-TZ"},
-                {"Swedish", "sv-SE"},
-                {"Tamil", "ta-IN"},
-                {"Telugu", "te-IN"},
-                {"Thai", "th-TH"},
-                {"Turkish", "tr-TR"},
-                {"Ukrainian", "uk-UA"},
-                {"Urdu", "ur-PK"},
-                {"Vietnamese", "vi-VN"},
-                {"Zulu", "zu-ZA"}
-        };
-
-        for (String[] language : srcLanguages) {
-            String languageName = language[0];
-            String dialect = language[1];
-
-            String formattedDisplay = languageName;
-
-            String[] parts = dialect.split("-");
-
-            if (parts.length >= 2) {
-                String countryCode = parts[parts.length - 1];
-
-                Locale locale = new Locale("", countryCode);
-                String countryName = locale.getDisplayCountry(Locale.ENGLISH);
-
-                formattedDisplay = languageName + " (" + countryName + ")";
-            }
-
-            localLanguages.add(formattedDisplay);
-            tempDialects.add(dialect);
-            tempCountries.add(languageName);
-        }
-
-        dialects = tempDialects.toArray(new String[0]);
-        countries = tempCountries.toArray(new String[0]);
-
-        setup_spinner(localLanguages);
     }
 
     public static boolean isNotificationListenerEnabled(Context context) {
@@ -1083,29 +780,6 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public static void requestRebind(Context context) {
-        if (!isNotificationListenerEnabled(context)) return;
-
-        ComponentName cn = new ComponentName(context, MyNotificationListenerService.class);
-        // API 24+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            NotificationListenerService.requestRebind(cn);
-        }
-    }
-
-    public static void toggleNotificationListenerService(Context context) {
-        PackageManager pm = context.getPackageManager();
-        ComponentName cn = new ComponentName(context, MyNotificationListenerService.class);
-
-        pm.setComponentEnabledSetting(cn,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
-        pm.setComponentEnabledSetting(cn,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP);
-    }
-
-    // Nama tampilan dari tag, dipakai di onReceive menggantikan rantai if/else Mandarin
     private String friendlyName(String rawTag) {
         String tag = rawTag.replace('_', '-');
         switch (tag) {
@@ -1121,7 +795,7 @@ public class MainActivity extends AppCompatActivity {
         return Locale.forLanguageTag(tag).getDisplayName(Locale.ENGLISH).trim();
     }
 
-    // Konversi tag dialek Google -> kode ML Kit (satu tempat saja)
+    // Google dialect tag conversion -> ML Kit code (one place only)
     public static String toMlKitCode(String dialect) {
         if (dialect == null) return null;
         String lang = dialect.split("-")[0].toLowerCase(Locale.ROOT);
@@ -1139,7 +813,7 @@ public class MainActivity extends AppCompatActivity {
                 "eu-ES","be-BY","bn-BD","bn-IN","bs-BA","bg-BG","ca-ES","ceb",
                 "cmn-Hans-CN","cmn-Hant-TW","yue-Hant-HK",
                 "hr-HR","cs-CZ","da-DK","nl-NL","nl-BE",
-                // English: dialek
+                // English dialeCT
                 "en-US","en-GB","en-AU","en-CA","en-IN","en-ID","en-IE","en-NZ",
                 "en-PH","en-SG","en-ZA","en-NG","en-KE","en-GH","en-HK","en-PK","en-TZ",
                 "et-EE","fil-PH","fi-FI",
@@ -1163,117 +837,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         dialects = tagList.toArray(new String[0]);
-        countries = names.toArray(new String[0]);
-        setup_spinner(names);
-    }
-
-// Opsional: guard bahasa yang tidak didukung ML Kit
-// if (TranslateLanguage.fromLanguageTag(code) == null) { ...tampilkan pesan... }
-
-    private void loadLocaleLanguages_last() {
-        final String[][] srcLanguages = {
-                {"Afrikaans", "af-ZA"},
-                {"Albanian", "sq-AL"},
-                {"Amharic", "am-ET"},
-                {"Arabic", "ar-SA"},
-                {"Armenian", "hy-AM"},
-                {"Assamese", "as-IN"},
-                {"Azerbaijani", "az-AZ"},
-                {"Basque", "eu-ES"},
-                {"Belarusian", "be-BY"},
-                {"Bengali", "bn-BD"},
-                {"Bosnian", "bs-BA"},
-                {"Bulgarian", "bg-BG"},
-                {"Catalan", "ca-ES"},
-                {"Cebuano", "ceb"},
-                {"Chinese Simplified (China)", "cmn-Hans-CN"},
-                {"Chinese Traditional (Taiwan)", "cmn-Hant-TW"},
-                {"Chinese Cantonese (Hong Kong)", "yue-Hant-HK"},
-                {"Croatian", "hr-HR"},
-                {"Czech", "cs-CZ"},
-                {"Danish", "da-DK"},
-                {"Dutch", "nl-NL"},
-                {"English", "en-US"},
-                {"Estonian", "et-EE"},
-                {"Filipino", "fil-PH"},
-                {"Finnish", "fi-FI"},
-                {"French", "fr-FR"},
-                {"Galician", "gl-ES"},
-                {"Georgian", "ka-GE"},
-                {"German", "de-DE"},
-                {"Greek", "el-GR"},
-                {"Gujarati", "gu-IN"},
-                {"Hebrew", "he-IL"},
-                {"Hindi", "hi-IN"},
-                {"Hungarian", "hu-HU"},
-                {"Icelandic", "is-IS"},
-                {"Indonesian", "id-ID"},
-                {"Irish", "ga-IE"},
-                {"Italian", "it-IT"},
-                {"Japanese", "ja-JP"},
-                {"Javanese", "jv-ID"},
-                {"Kannada", "kn-IN"},
-                {"Kazakh", "kk-KZ"},
-                {"Khmer", "km-KH"},
-                {"Korean", "ko-KR"},
-                {"Kyrgyz", "ky-KG"},
-                {"Lao", "lo-LA"},
-                {"Latvian", "lv-LV"},
-                {"Lingala", "ln-CD"},
-                {"Lithuanian", "lt-LT"},
-                {"Malay", "ms-MY"},
-                {"Malayalam", "ml-IN"},
-                {"Maltese", "mt-MT"},
-                {"Marathi", "mr-IN"},
-                {"Macedonian", "mk-MK"},
-                {"Mongolian", "mn-MN"},
-                {"Nepali", "ne-NP"},
-                {"Norwegian Bokmål", "nb-NO"},
-                {"Persian", "fa-IR"},
-                {"Polish", "pl-PL"},
-                {"Portuguese", "pt-BR"},
-                {"Punjabi", "pa-IN"},
-                {"Romanian", "ro-RO"},
-                {"Russian", "ru-RU"},
-                {"Serbian", "sr-RS"},
-                {"Sinhala", "si-LK"},
-                {"Slovak", "sk-SK"},
-                {"Slovenian", "sl-SI"},
-                {"Spanish", "es-ES"},
-                {"Sundanese", "su-ID"},
-                {"Swahili", "sw-TZ"},
-                {"Swedish", "sv-SE"},
-                {"Tamil", "ta-IN"},
-                {"Telugu", "te-IN"},
-                {"Thai", "th-TH"},
-                {"Turkish", "tr-TR"},
-                {"Ukrainian", "uk-UA"},
-                {"Urdu", "ur-PK"},
-                {"Vietnamese", "vi-VN"},
-                {"Zulu", "zu-ZA"}
-        };
-
-        ArrayList<String> names = new ArrayList<>();
-        ArrayList<String> tags = new ArrayList<>();
-
-        for (String[] lang : srcLanguages) {
-            String name = lang[0];
-            String tag = lang[1];
-
-            // Tambahkan negara hanya jika belum ada kurung dan segmen terakhir adalah kode region (2 huruf)
-            if (!name.contains("(")) {
-                String[] parts = tag.split("-");
-                String last = parts[parts.length - 1];
-                if (parts.length >= 2 && last.length() == 2) {
-                    String country = new Locale.Builder().setRegion(last).build().getDisplayCountry(Locale.ENGLISH);
-                    if (!country.isEmpty()) name += " (" + country + ")";
-                }
-            }
-            names.add(name);
-            tags.add(tag);
-        }
-
-        dialects = tags.toArray(new String[0]);
         countries = names.toArray(new String[0]);
         setup_spinner(names);
     }
@@ -1302,7 +865,7 @@ public class MainActivity extends AppCompatActivity {
         spinner_dst_languages.setSelection(indexOfTag(names, "en-US", "en"));
     }
 
-    // Cocokkan tag persis dulu; kalau tidak ada, pakai entri pertama dengan kode bahasa yang sama
+    // Match the tags exactly first; if not, use the first entry with the same language code
     private int indexOfTag(java.util.List<String> names, String exactTag, String langFallback) {
         int fallback = -1;
         for (int i = 0; i < names.size(); i++) {
@@ -1313,5 +876,29 @@ public class MainActivity extends AppCompatActivity {
         }
         return Math.max(fallback, 0);
     }
+
+    public void setText(final TextView tv, final String text){
+        new Handler(Looper.getMainLooper()).post(() -> {
+            // Any UI task, example
+            tv.setText(text);
+        });
+    }
+
+    /*private void checkRecordAudioPermission() {
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, RecordAudioRequestCode);
+        }
+    }*/
+
+    /*private void checkDrawOverlayPermission() {
+        if (!Settings.canDrawOverlays(this)) {
+            Intent myIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+            startActivity(myIntent);
+        }
+    }*/
+
+    /*private void toast(String message) {
+        new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show());
+    }*/
 
 }

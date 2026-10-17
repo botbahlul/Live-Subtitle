@@ -91,13 +91,6 @@ public class VoiceRecognizer extends Service {
         MIC_BUTTON_STATUS.STRING = "MIC_BUTTON_STATUS.IS_OVERLAYING = " + MIC_BUTTON_STATUS.IS_OVERLAYING;
         setText(MainActivity.textview_overlaying, MIC_BUTTON_STATUS.STRING);
 
-        //if (LANGUAGE.SRC.equals("zh-CN") || LANGUAGE.SRC.equals("zh-TW")) {
-        //    LANGUAGE.SRC = "zh";
-        //}
-        //if (LANGUAGE.DST.equals("zh-CN") || LANGUAGE.DST.equals("zh-TW")) {
-        //    LANGUAGE.DST = "zh";
-        //}
-
         options = new TranslatorOptions.Builder()
                 .setSourceLanguage(LANGUAGE.SRC)
                 .setTargetLanguage(LANGUAGE.DST)
@@ -173,19 +166,6 @@ public class VoiceRecognizer extends Service {
                 @Override
                 public void onBeginningOfSpeech() {
                     setText(MainActivity.textview_debug, "onBeginningOfSpeech");
-                    /*
-                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        speechRecognizer.stopListening();
-                    } else {
-                        speechRecognizer.startListening(speechRecognizerIntent);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                //sendMediaPlay();
-                                MyNotificationListenerService.ensureOperaPlaying();
-                            }
-                        }, 200);
-                    }
-                    */
                 }
 
                 @Override
@@ -196,19 +176,6 @@ public class VoiceRecognizer extends Service {
                 @Override
                 public void onBufferReceived(byte[] buffer) {
                     setText(MainActivity.textview_debug, "onBufferReceived: " + Arrays.toString(buffer));
-                    /*
-                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        speechRecognizer.stopListening();
-                    } else {
-                        speechRecognizer.startListening(speechRecognizerIntent);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                //sendMediaPlay();
-                                MyNotificationListenerService.ensureOperaPlaying();
-                            }
-                        }, 200);
-                    }
-                    */
                 }
 
 
@@ -270,23 +237,6 @@ public class VoiceRecognizer extends Service {
                     }
                 }
 
-                /*
-                @Override
-                public void onEndOfSpeech() {
-                    setText(MainActivity.textview_debug, "onEndOfSpeech");
-                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        //speechRecognizer.stopListening();
-                        speechRecognizer.stopListening();
-                    } else {
-                        setText(MainActivity.textview_output_messages, "onResults");
-                        if (!VOICE_TEXT.STRING.isEmpty()) {
-                            lastVoiceString = VOICE_TEXT.STRING + ".\n";
-                            Log.d(TAG, "onResults: lastVoiceString = VOICE_TEXT.STRING = " + lastVoiceString);
-                        }
-                    }
-                }
-                */
-
                 @Override
                 public void onError(int errorCode) {
                     setText(MainActivity.textview_debug, "onError");
@@ -308,28 +258,6 @@ public class VoiceRecognizer extends Service {
                         }, 200);
                     }
                 }
-
-                /*
-                @Override public void onError(int errorCode) {
-                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) return;
-
-                    // Apa pun errornya, selamatkan teks yang belum sempat di-commit
-                    flushPending();
-
-                    if (Objects.equals(getErrorText(errorCode), "Insufficient permissions")) {
-                        setText(MainActivity.textview_output_messages, "Please give RECORD AUDIO PERMISSION (USE MICROPHONE PERMISSION) to GOOGLE APP");
-                    } else {
-                        setText(MainActivity.textview_debug, "onError : " + getErrorText(errorCode));
-                    }
-                    speechRecognizer.startListening(speechRecognizerIntent);
-                    new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                        if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                            //sendMediaPlay();
-                            MyNotificationListenerService.ensureOperaPlaying();
-                        }
-                    }, 200);
-                }
-                */
 
                 @Override
                 public void onResults(Bundle results) {
@@ -372,75 +300,9 @@ public class VoiceRecognizer extends Service {
                     }
                 }
 
-                /*
-                @Override public void onResults(Bundle results) {
-                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) return;
-
-                    ArrayList<String> data = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    String fin = (data != null && !data.isEmpty()) ? normalize(data.get(0)) : "";
-
-                    // Hasil final kosong: pakai partial terakhir yang kita simpan
-                    String text = !fin.isEmpty() ? fin : lastPartial;
-
-                    // Buang bagian yang sudah di-commit sebagai segmen (hindari duplikasi)
-                    for (String seg : sessionSegments) {
-                        if (text.startsWith(seg)) text = text.substring(seg.length()).trim();
-                    }
-
-                    commitSegment(text);
-                    lastPartial = "";           // sudah tersimpan, jangan di-flush dua kali
-                    flushPending();
-                    scheduleRestart(250);
-                }
-                */
-
-                /*
-                @Override public void onPartialResults(Bundle partial) {
-                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) return;
-                    ArrayList<String> data = partial.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    if (data == null || data.isEmpty()) return;
-
-                    String text = data.get(0);
-                    if (PREFER_OFFLINE_STATUS.OFFLINE) {
-                        ArrayList<String> unstable = partial.getStringArrayList("android.speech.extra.UNSTABLE_TEXT");
-                        if (unstable != null && !unstable.isEmpty()) text += unstable.get(0);
-                    }
-                    text = normalize(text);
-
-                    // 1) Partial kosong: JANGAN menimpa. Pertahankan yang terakhir.
-                    if (text.isEmpty()) return;
-
-                    // 2) Partial yang bukan kelanjutan/revisi: selamatkan yang lama dulu
-                    if (!lastPartial.isEmpty() && looksLikeReset(lastPartial, text)) {
-                        Log.d(TAG, "reset terdeteksi: [" + lastPartial + "] -> [" + text + "]");
-                        commitSegment(lastPartial);
-                    }
-
-                    lastPartial = text;
-                    VOICE_TEXT.STRING = text;
-                    if (MainActivity.voice_text != null) {
-                        MainActivity.voice_text.setText(text);
-                        MainActivity.voice_text.setSelection(MainActivity.voice_text.getText().length());
-                    }
-                }
-                */
-
                 @Override
                 public void onEvent(int arg0, Bundle arg1) {
                     setText(MainActivity.textview_output_messages, "onEvent");
-                    /*
-                    if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        speechRecognizer.stopListening();
-                    } else {
-                        speechRecognizer.startListening(speechRecognizerIntent);
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                //sendMediaPlay();
-                                MyNotificationListenerService.ensureOperaPlaying();
-                            }
-                        }, 200);
-                    }
-                    */
                 }
 
                 public String getErrorText(int errorCode) {
@@ -482,7 +344,7 @@ public class VoiceRecognizer extends Service {
             });
         }
 
-        if (speechRecognizer == null) {   // setelah blok isRecognitionAvailable
+        if (speechRecognizer == null) {
             setText(MainActivity.textview_output_messages, "Speech recognition not available");
             stopSelf();
             return;
