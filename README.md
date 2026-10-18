@@ -1,5 +1,5 @@
 # Live-Subtitle
-ANDROID APP that can RECOGNIZE MyPlayer app (https://github.com/botbahlul/myplayer) LIVE AUDIO/VIDEO STREAMING (using free Android Developers Speech Recognition API) then TRANSLATE (using MLKIT TRANSLATE API) and display them as LIVE CAPTIONS / LIVE SUBTITLES.
+ANDROID APP that can RECOGNIZE [MyPlayer](https://github.com/botbahlul/myplayer) app LIVE AUDIO/VIDEO STREAMING (using free Android Developers Speech Recognition API) then TRANSLATE (using MLKIT TRANSLATE API) and display them as LIVE CAPTIONS / LIVE SUBTITLES.
 
 This app has PROS & CONS compared to other Speech Recognition APIs like VOSK, IBM WATSON, and PREMIUM GOOGPLE SPEECH API
 
