@@ -153,10 +153,9 @@ public class VoiceRecognizer extends Service {
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                         speechRecognizer.stopListening();
                     } else {
-                        speechRecognizer.startListening(speechRecognizerIntent);
+                        // startListening() DIHAPUS dari sini (sudah berjalan)
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                //sendMediaPlay();
                                 MyNotificationListenerService.ensureOperaPlaying();
                             }
                         }, 200);
@@ -183,15 +182,18 @@ public class VoiceRecognizer extends Service {
                 public void onEndOfSpeech() {
                     setText(MainActivity.textview_debug, "onEndOfSpeech");
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        speechRecognizer.stopListening();
+                        // Tidak perlu stop/destroy: sesi sudah selesai merekam,
+                        // destroy() dilakukan di onResults/onError
+                        return;
                     } else {
                         Log.d(TAG, "onEndOfSpeech: Restarting speechRecognizer");
                         if (!VOICE_TEXT.STRING.isEmpty()) {
-                            lastVoiceString = VOICE_TEXT.STRING + ".\n";
+                            lastVoiceString = VOICE_TEXT.STRING + ".";
+                            VOICE_TEXT.STRING = "";  // cegah terkirim ulang
                             //Log.d(TAG, "onEndOfSpeech: lastVoiceString = VOICE_TEXT.STRING = " + lastVoiceString);
                         }
                         if (MainActivity.full_voice_text != null && !lastVoiceString.isEmpty()) {
-                            appendText(MainActivity.full_voice_text, lastVoiceString);
+                            appendText(MainActivity.full_voice_text, "\n" + lastVoiceString);
                             MainActivity.full_voice_text.setSelection(MainActivity.full_voice_text.getText().length());
                             MainActivity.full_voice_text.setGravity(Gravity.BOTTOM);
 
@@ -207,7 +209,7 @@ public class VoiceRecognizer extends Service {
                                                     create_overlay_translation_text.overlay_full_translation_text.setBackgroundColor(Color.TRANSPARENT);
                                                     create_overlay_translation_text.overlay_full_translation_text.setTextIsSelectable(true);
                                                     create_overlay_translation_text.overlay_full_translation_text.setHighlightColor(Color.TRANSPARENT);
-                                                    appendText(create_overlay_translation_text.overlay_full_translation_text, translatedLastVoiceString);
+                                                    appendText(create_overlay_translation_text.overlay_full_translation_text, "\n" + translatedLastVoiceString);
                                                     create_overlay_translation_text.overlay_full_translation_text.setSelection(create_overlay_translation_text.overlay_full_translation_text.getText().length());
                                                     create_overlay_translation_text.overlay_full_translation_text.setTextColor(Color.parseColor("#FF00FFFF"));
                                                     create_overlay_translation_text.overlay_full_translation_text.setGravity(Gravity.BOTTOM);
@@ -222,12 +224,12 @@ public class VoiceRecognizer extends Service {
                                             }
                                         })
                                         .addOnFailureListener(e -> {
-                                            // Log error atau handle jika translasi gagal
+                                            // make some error logs or handle if the translation failed
                                         });
                             }
                             lastVoiceString = "";
                         }
-                        speechRecognizer.startListening(speechRecognizerIntent);
+                        // startListening() DIPINDAH ke onResults/onError
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
                                 //sendMediaPlay();
@@ -261,16 +263,22 @@ public class VoiceRecognizer extends Service {
 
                 @Override
                 public void onResults(Bundle results) {
-                    setText(MainActivity.textview_debug, "onResults");
+                    setText(MainActivity.textview_output_messages, "onResults");
                     if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                        //speechRecognizer.stopListening();
-                        speechRecognizer.destroy();
+                        speechRecognizer.destroy();   // sesi sudah selesai -> lepas objek
+                        return;
                     } else {
+                        Log.d(TAG, "onResults: results = " + results);
                         setText(MainActivity.textview_output_messages, "onResults");
                         if (!VOICE_TEXT.STRING.isEmpty()) {
-                            lastVoiceString = VOICE_TEXT.STRING + ".\n";
-                            Log.d(TAG, "onResults: lastVoiceString = VOICE_TEXT.STRING = " + lastVoiceString);
+                            lastVoiceString = VOICE_TEXT.STRING + ".";
                         }
+                        speechRecognizer.startListening(speechRecognizerIntent);   // restart di sini
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
+                                MyNotificationListenerService.ensureOperaPlaying();
+                            }
+                        }, 200);
                     }
                 }
 
@@ -359,10 +367,8 @@ public class VoiceRecognizer extends Service {
             }
 
             speechRecognizer.startListening(speechRecognizerIntent);
-
             Handler handler = new Handler(Looper.getMainLooper());
             Executor executor = Executors.newSingleThreadExecutor();
-            speechRecognizer.startListening(speechRecognizerIntent);
             timer = new Timer();
             timerTask = new TimerTask() {
                 @Override

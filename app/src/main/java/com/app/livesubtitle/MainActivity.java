@@ -53,6 +53,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
+    private String TAG = "MainActivity";
     private CheckBox checkbox_debug_mode;
     private Spinner spinner_src_languages;
     private TextView textview_src_dialect;
@@ -85,6 +86,10 @@ public class MainActivity extends AppCompatActivity {
     private String [] countries;
     private String [] dialects;
     private Map<String, String> countries_dialects;
+
+    private final ArrayList<String> arraylist_dst_languages = new ArrayList<>();
+    private final ArrayList<String> arraylist_dst = new ArrayList<>();
+    private final Map<String, String> map_dst_country = new HashMap<>();
 
     public static AudioManager audio;
     public static int mStreamVolume;
@@ -129,6 +134,131 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        arraylist_dst.add("af");
+        arraylist_dst.add("ar");
+        arraylist_dst.add("be");
+        arraylist_dst.add("bg");
+        arraylist_dst.add("bn");
+        arraylist_dst.add("ca");
+        arraylist_dst.add("cs");
+        arraylist_dst.add("cy");
+        arraylist_dst.add("da");
+        arraylist_dst.add("de");
+        arraylist_dst.add("el");
+        arraylist_dst.add("en");
+        arraylist_dst.add("eo");
+        arraylist_dst.add("es");
+        arraylist_dst.add("et");
+        arraylist_dst.add("fa");
+        arraylist_dst.add("fi");
+        arraylist_dst.add("fr");
+        arraylist_dst.add("ga");
+        arraylist_dst.add("gl");
+        arraylist_dst.add("gu");
+        arraylist_dst.add("he");
+        arraylist_dst.add("hi");
+        arraylist_dst.add("hr");
+        arraylist_dst.add("ht");
+        arraylist_dst.add("hu");
+        arraylist_dst.add("id");
+        arraylist_dst.add("is");
+        arraylist_dst.add("it");
+        arraylist_dst.add("ja");
+        arraylist_dst.add("ka");
+        arraylist_dst.add("kn");
+        arraylist_dst.add("ko");
+        arraylist_dst.add("lt");
+        arraylist_dst.add("lv");
+        arraylist_dst.add("mk");
+        arraylist_dst.add("mr");
+        arraylist_dst.add("ms");
+        arraylist_dst.add("mt");
+        arraylist_dst.add("nl");
+        arraylist_dst.add("no");
+        arraylist_dst.add("pl");
+        arraylist_dst.add("pt");
+        arraylist_dst.add("ro");
+        arraylist_dst.add("ru");
+        arraylist_dst.add("sk");
+        arraylist_dst.add("sl");
+        arraylist_dst.add("sq");
+        arraylist_dst.add("sv");
+        arraylist_dst.add("sw");
+        arraylist_dst.add("ta");
+        arraylist_dst.add("te");
+        arraylist_dst.add("th");
+        arraylist_dst.add("tl");
+        arraylist_dst.add("tr");
+        arraylist_dst.add("uk");
+        arraylist_dst.add("ur");
+        arraylist_dst.add("vi");
+        arraylist_dst.add("zh");
+
+        arraylist_dst_languages.add("Afrikaans");
+        arraylist_dst_languages.add("Arabic");
+        arraylist_dst_languages.add("Belarusian");
+        arraylist_dst_languages.add("Bulgarian");
+        arraylist_dst_languages.add("Bengali");
+        arraylist_dst_languages.add("Catalan");
+        arraylist_dst_languages.add("Czech");
+        arraylist_dst_languages.add("Welsh");
+        arraylist_dst_languages.add("Danish");
+        arraylist_dst_languages.add("German");
+        arraylist_dst_languages.add("Greek");
+        arraylist_dst_languages.add("English");
+        arraylist_dst_languages.add("Esperanto");
+        arraylist_dst_languages.add("Spanish");
+        arraylist_dst_languages.add("Estonian");
+        arraylist_dst_languages.add("Persian");
+        arraylist_dst_languages.add("Finnish");
+        arraylist_dst_languages.add("French");
+        arraylist_dst_languages.add("Irish");
+        arraylist_dst_languages.add("Galician");
+        arraylist_dst_languages.add("Gujarati");
+        arraylist_dst_languages.add("Hebrew");
+        arraylist_dst_languages.add("Hindi");
+        arraylist_dst_languages.add("Croatian");
+        arraylist_dst_languages.add("Haitian");
+        arraylist_dst_languages.add("Hungarian");
+        arraylist_dst_languages.add("Indonesian");
+        arraylist_dst_languages.add("Icelandic");
+        arraylist_dst_languages.add("Italian");
+        arraylist_dst_languages.add("Japanese");
+        arraylist_dst_languages.add("Georgian");
+        arraylist_dst_languages.add("Kannada");
+        arraylist_dst_languages.add("Korean");
+        arraylist_dst_languages.add("Lithuania");
+        arraylist_dst_languages.add("Latvian");
+        arraylist_dst_languages.add("Macedonian");
+        arraylist_dst_languages.add("Marathi");
+        arraylist_dst_languages.add("Malay");
+        arraylist_dst_languages.add("Maltese");
+        arraylist_dst_languages.add("Dutch");
+        arraylist_dst_languages.add("Norwegia");
+        arraylist_dst_languages.add("Polish");
+        arraylist_dst_languages.add("Portuguese");
+        arraylist_dst_languages.add("Romanian");
+        arraylist_dst_languages.add("Russian");
+        arraylist_dst_languages.add("Slovak");
+        arraylist_dst_languages.add("Slovenian");
+        arraylist_dst_languages.add("Albanian");
+        arraylist_dst_languages.add("Swedish");
+        arraylist_dst_languages.add("Swahili");
+        arraylist_dst_languages.add("Tamil");
+        arraylist_dst_languages.add("Telugu");
+        arraylist_dst_languages.add("Thai");
+        arraylist_dst_languages.add("Tagalog");
+        arraylist_dst_languages.add("Turkish");
+        arraylist_dst_languages.add("Ukrainian");
+        arraylist_dst_languages.add("Urdu");
+        arraylist_dst_languages.add("Vietnamese");
+        arraylist_dst_languages.add("Chinese");
+
+        for (int i = 0; i < arraylist_dst_languages.size(); i++) {
+            map_dst_country.put(arraylist_dst_languages.get(i), arraylist_dst.get(i));
+        }
+
         setContentView(R.layout.activity_main);
         setVolumeControlStream(AudioManager.MODE_IN_COMMUNICATION);
         AudioManager am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
@@ -611,7 +741,11 @@ public class MainActivity extends AppCompatActivity {
         stop_create_overlay_translation_text();
         stop_create_overlay_mic_button();
         stop_voice_recognizer();
-        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, mStreamVolume, AudioManager.ADJUST_SAME);
+        //audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, mStreamVolume, AudioManager.ADJUST_SAME);
+        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, mStreamVolume, 0);
+        Log.d(TAG, "onBackPressed: mStreamVolume = " + mStreamVolume);
+        //Log.d(TAG, "onBackPressed: mMusicVolume = " + mMusicVolume);
+
         finish();
     }
 
@@ -621,7 +755,10 @@ public class MainActivity extends AppCompatActivity {
         stop_create_overlay_translation_text();
         stop_create_overlay_mic_button();
         stop_voice_recognizer();
-        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, mStreamVolume, AudioManager.ADJUST_SAME);
+        //audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, mStreamVolume, AudioManager.ADJUST_SAME);
+        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, mStreamVolume, 0);
+        Log.d(TAG, "onDestroy: mStreamVolume = " + mStreamVolume);
+        //Log.d(TAG, "onDestroy: mMusicVolume = " + mMusicVolume);
     }
 
     @Override
