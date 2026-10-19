@@ -12,7 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
+
 
 public class create_overlay_mic_button extends Service {
 
@@ -33,27 +33,35 @@ public class create_overlay_mic_button extends Service {
         create_mic_button();
     }
 
+
     @Override
     public void onDestroy() {
         super.onDestroy();
         if (mGlobalOverlay_mic_button != null) {
             mGlobalOverlay_mic_button.removeOverlayView(mic_button);
         }
-        if (IS_OVER_REMOVEVIEW.IS_OVER) {
+
+        if (!MIC_BUTTON_STATUS.IS_OVERLAYING) {
+            stop_voice_recognizer();
+            stop_create_overlay_translation_text();
             RECOGNIZING_STATUS.IS_RECOGNIZING = false;
             RECOGNIZING_STATUS.STRING = "RECOGNIZING_STATUS.IS_RECOGNIZING = " + RECOGNIZING_STATUS.IS_RECOGNIZING;
-            setText(MainActivity.textview_recognizing, RECOGNIZING_STATUS.STRING);
+            MainActivity.textview_recognizing.setText(RECOGNIZING_STATUS.STRING);
             MIC_BUTTON_STATUS.IS_OVERLAYING = false;
             MIC_BUTTON_STATUS.STRING = "MIC_BUTTON_STATUS.IS_OVERLAYING = " + MIC_BUTTON_STATUS.IS_OVERLAYING;
-            setText(MainActivity.textview_overlaying, MIC_BUTTON_STATUS.STRING);
-            setText(MainActivity.textview_output_messages, "");
+            MainActivity.textview_overlaying.setText(MIC_BUTTON_STATUS.STRING);
+            MainActivity.textview_debug.setText("");
             VOICE_TEXT.STRING = "";
             TRANSLATION_TEXT.STRING = "";
             MainActivity.voice_text.setText("");
             MainActivity.voice_text.setHint("Recognized words");
             MainActivity.full_voice_text.setText("");
             MainActivity.full_voice_text.setHint("Recognized sentences");
-            MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, (int)Double.parseDouble(String.valueOf((long)(MainActivity.audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION) / 2))), 0);
+            //MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, (int)Double.parseDouble(String.valueOf((long)(MainActivity.audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION) / 2))), 0);
+            //MainActivity.audio.setStreamVolume(AudioManager.STREAM_MUSIC, (int)Double.parseDouble(String.valueOf((long)(MainActivity.audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC) / 2))), 0);
+            MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, MainActivity.mStreamVolume, 0);
+            Log.d(TAG, "onDestroy: mStreamVolume = " + MainActivity.mStreamVolume);
+            //Log.d(TAG, "onDestroy: mMusicVolume = " + MainActivity.mMusicVolume);
             if (create_overlay_translation_text.overlay_translation_text != null) {
                 create_overlay_translation_text.overlay_translation_text.setText("");
                 create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
@@ -67,20 +75,18 @@ public class create_overlay_mic_button extends Service {
             if (create_overlay_mic_button.mic_button != null) {
                 create_overlay_mic_button.mic_button.setVisibility(View.INVISIBLE);
             }
-            stop_voice_recognizer();
-            stop_create_overlay_translation_text();
         }
-        setText(MainActivity.textview_output_messages, "");
+        MainActivity.textview_debug.setText("");
         VOICE_TEXT.STRING = "";
         TRANSLATION_TEXT.STRING = "";
+        RECOGNIZING_STATUS.STRING = "RECOGNIZING_STATUS.IS_RECOGNIZING = " + RECOGNIZING_STATUS.IS_RECOGNIZING;
+        MainActivity.textview_recognizing.setText(RECOGNIZING_STATUS.STRING);
+        MIC_BUTTON_STATUS.STRING = "MIC_BUTTON_STATUS.IS_OVERLAYING = " + MIC_BUTTON_STATUS.IS_OVERLAYING;
+        MainActivity.textview_overlaying.setText(MIC_BUTTON_STATUS.STRING);
         MainActivity.voice_text.setText("");
         MainActivity.voice_text.setHint("Recognized words");
         MainActivity.full_voice_text.setText("");
         MainActivity.full_voice_text.setHint("Recognized sentences");
-        RECOGNIZING_STATUS.STRING = "RECOGNIZING_STATUS.IS_RECOGNIZING = " + RECOGNIZING_STATUS.IS_RECOGNIZING;
-        setText(MainActivity.textview_recognizing, RECOGNIZING_STATUS.STRING);
-        MIC_BUTTON_STATUS.STRING = "MIC_BUTTON_STATUS.IS_OVERLAYING = " + MIC_BUTTON_STATUS.IS_OVERLAYING;
-        setText(MainActivity.textview_overlaying, MIC_BUTTON_STATUS.STRING);
         Log.d("create_overlay_mic_button", "Stopping create_overlay_mic_button service");
     }
 
@@ -91,6 +97,7 @@ public class create_overlay_mic_button extends Service {
         }
         mGlobalOverlay_mic_button = new GlobalOverlay(this);
         mic_button = new ImageView(this);
+        MIC_BUTTON_STATUS.IS_OVERLAYING = true;
         if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
             mic_button.setImageResource(R.drawable.ic_mic_black_off);
         } else {
@@ -107,9 +114,11 @@ public class create_overlay_mic_button extends Service {
                     public void onClick(View v) {
                         RECOGNIZING_STATUS.IS_RECOGNIZING = !RECOGNIZING_STATUS.IS_RECOGNIZING;
                         RECOGNIZING_STATUS.STRING = "RECOGNIZING_STATUS.IS_RECOGNIZING = " + RECOGNIZING_STATUS.IS_RECOGNIZING;
-                        setText(MainActivity.textview_recognizing, RECOGNIZING_STATUS.STRING);
+                        MainActivity.textview_recognizing.setText(RECOGNIZING_STATUS.STRING);
                         MIC_BUTTON_STATUS.STRING = "MIC_BUTTON_STATUS.IS_OVERLAYING = " + MIC_BUTTON_STATUS.IS_OVERLAYING;
-                        setText(MainActivity.textview_overlaying, MIC_BUTTON_STATUS.STRING);
+                        MainActivity.textview_overlaying.setText(MIC_BUTTON_STATUS.STRING);
+                        MainActivity.textview_debug.setText("");
+                        MainActivity.textview_output_messages.setText("");
                         if (!RECOGNIZING_STATUS.IS_RECOGNIZING) {
                             stop_voice_recognizer();
                             mic_button.setImageResource(R.drawable.ic_mic_black_off);
@@ -138,9 +147,16 @@ public class create_overlay_mic_button extends Service {
                             MainActivity.audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
                             start_voice_recognizer();
                             mic_button.setImageResource(R.drawable.ic_mic_black_on);
-                            if (!(TRANSLATION_TEXT.STRING.length() == 0)) {
-                                create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.VISIBLE);
-                                create_overlay_translation_text.overlay_translation_text.setVisibility(View.VISIBLE);
+                            if (TRANSLATION_TEXT.STRING.length() == 0) {
+                                if (create_overlay_translation_text.overlay_translation_text_container != null) {
+                                    create_overlay_translation_text.overlay_translation_text.setVisibility(View.INVISIBLE);
+                                    create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.INVISIBLE);
+                                }
+                            } else {
+                                if (create_overlay_translation_text.overlay_translation_text_container != null) {
+                                    create_overlay_translation_text.overlay_translation_text_container.setVisibility(View.VISIBLE);
+                                    create_overlay_translation_text.overlay_translation_text.setVisibility(View.VISIBLE);
+                                }
                             }
                         }
                     }
@@ -153,12 +169,17 @@ public class create_overlay_mic_button extends Service {
                 },
                 new GlobalOverlay.OnRemoveOverlayListener() {
                     @Override
-                    public void onRemoveOverlay(View mic_button, boolean isRemovedByUser) {
-                        //toast("onRemoveOverlay");
-                        stopSelf();
+                    public void onRemoveOverlay(View view, boolean isRemovedByUser) {
+                        if (view == mic_button && isRemovedByUser) {
+                            MIC_BUTTON_STATUS.IS_OVERLAYING = false;
+                            RECOGNIZING_STATUS.IS_RECOGNIZING = false;
+                            //toast("onRemoveOverlay");
+                            stop_create_overlay_translation_text();
+                            stop_voice_recognizer();
+                            stopSelf();
+                        }
                     }
                 });
-
     }
 
     private void start_voice_recognizer() {
