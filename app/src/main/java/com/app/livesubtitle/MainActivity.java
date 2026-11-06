@@ -107,16 +107,6 @@ public class MainActivity extends AppCompatActivity {
 
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    private final Runnable checkConnection = new Runnable() {
-        @Override
-        public void run() {
-            if (!MyNotificationListenerService.isConnected) {
-                Log.w("MainActivity", "Listener belum connected, forceRebind()");
-                MyNotificationListenerService.forceRebind(MainActivity.this);
-            }
-        }
-    };
-
     public boolean isNotificationServiceEnabled() {
         String pkgName = getPackageName();
         return NotificationManagerCompat.getEnabledListenerPackages(this).contains(pkgName);
@@ -905,18 +895,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (!MyNotificationListenerService.isEnabled(this)) {
-            Intent i = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-            startActivity(i);
-
-        }
-        handler.removeCallbacks(checkConnection);
-        handler.postDelayed(checkConnection, 1500);
     }
 
     @Override
     protected void onPause() {
-        handler.removeCallbacks(checkConnection);
         super.onPause();
     }
 
@@ -1174,28 +1156,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return false;
-    }
-
-    public static void requestRebind(Context context) {
-        if (!isNotificationListenerEnabled(context)) return;
-
-        ComponentName cn = new ComponentName(context, MyNotificationListenerService.class);
-        // API 24+
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            NotificationListenerService.requestRebind(cn);
-        }
-    }
-
-    public static void toggleNotificationListenerService(Context context) {
-        PackageManager pm = context.getPackageManager();
-        ComponentName cn = new ComponentName(context, MyNotificationListenerService.class);
-
-        pm.setComponentEnabledSetting(cn,
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP);
-        pm.setComponentEnabledSetting(cn,
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP);
     }
 
     public void setText(final TextView tv, final String text){

@@ -159,11 +159,6 @@ public class VoiceRecognizer extends Service {
                         //===============================
                     } else {
                         // startListening() REMOVED from here (it is already running)
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                MyNotificationListenerService.ensureOperaPlaying();
-                            }
-                        }, 200);
                     }
                 }
 
@@ -226,12 +221,6 @@ public class VoiceRecognizer extends Service {
                             lastVoiceString = "";
                         }
                         // startListening() MOVED to onResults/onError
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                //sendMediaPlay();
-                                MyNotificationListenerService.ensureOperaPlaying();
-                            }
-                        }, 200);
                     }
                 }
 
@@ -247,16 +236,9 @@ public class VoiceRecognizer extends Service {
                         } else {
                             setText(MainActivity.textview_debug, "onError : " + getErrorText(errorCode));
                         }
-
                         //======================================================
                         speechRecognizer.startListening(speechRecognizerIntent);
                         //======================================================
-
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                MyNotificationListenerService.ensureOperaPlaying();
-                            }
-                        }, 200);
                     }
                 }
 
@@ -269,16 +251,9 @@ public class VoiceRecognizer extends Service {
                         return;
                     } else {
                         Log.d(TAG, "onResults: results = " + results);
-
                         //======================================================
                         speechRecognizer.startListening(speechRecognizerIntent);   // restart here
                         //======================================================
-
-                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                            if (RECOGNIZING_STATUS.IS_RECOGNIZING) {
-                                MyNotificationListenerService.ensureOperaPlaying();
-                            }
-                        }, 200);
                     }
                 }
 
